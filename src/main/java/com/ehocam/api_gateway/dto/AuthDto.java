@@ -1,11 +1,12 @@
 package com.ehocam.api_gateway.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public class AuthDto {
 
     public static class OAuth2Request {
-        @NotBlank
+        @NotBlank(message = "Authorization code is required")
         private String code;
         
         private String redirectUri;
@@ -18,12 +19,36 @@ public class AuthDto {
     }
 
     public static class GoogleOAuthRequest {
+        @NotBlank(message = "Google user ID is required")
+        private String id;
+        
+        @NotBlank(message = "Email is required")
+        @Email(message = "Email must be valid")
+        private String email;
+        
+        @NotBlank(message = "Name is required")
+        private String name;
+        
+        private String photo;
+        
         @NotBlank(message = "ID token is required")
         private String idToken;
+        
+        private String accessToken;
 
         // Getters and Setters
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public String getPhoto() { return photo; }
+        public void setPhoto(String photo) { this.photo = photo; }
         public String getIdToken() { return idToken; }
         public void setIdToken(String idToken) { this.idToken = idToken; }
+        public String getAccessToken() { return accessToken; }
+        public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
     }
 
     public static class GuestRequest {
@@ -38,7 +63,7 @@ public class AuthDto {
     }
 
     public static class RefreshRequest {
-        @NotBlank
+        @NotBlank(message = "Refresh token is required")
         private String refreshToken;
 
         // Getters and Setters

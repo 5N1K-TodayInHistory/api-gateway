@@ -40,6 +40,11 @@ public class AuthController {
             @Valid @RequestBody AuthDto.GoogleOAuthRequest request) {
         
         try {
+            // Validate request structure
+            if (request.getIdToken() == null) {
+                throw new IllegalArgumentException("Invalid Google OAuth request: idToken is required");
+            }
+            
             // Verify Google ID token and get/create user
             User user = googleOAuth2Service.verifyIdTokenAndGetUser(request.getIdToken());
             

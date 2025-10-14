@@ -8,10 +8,10 @@ import jakarta.validation.constraints.NotNull;
 public class CommentDto {
 
     public static class Create {
-        @NotNull
+        @NotNull(message = "Event ID is required")
         private Long eventId;
         
-        @NotBlank
+        @NotBlank(message = "Comment content is required")
         private String content;
 
         // Getters and Setters

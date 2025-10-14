@@ -11,22 +11,22 @@ import jakarta.validation.constraints.NotNull;
 public class EventDto {
 
     public static class Create {
-        @NotBlank
+        @NotBlank(message = "Event title is required")
         private String title;
         
-        @NotBlank
+        @NotBlank(message = "Event summary is required")
         private String summary;
         
-        @NotBlank
+        @NotBlank(message = "Event content is required")
         private String content;
         
-        @NotNull
+        @NotNull(message = "Event date is required")
         private LocalDateTime date;
         
-        @NotNull
+        @NotNull(message = "Event category is required")
         private Event.Category category;
         
-        @NotNull
+        @NotNull(message = "Event country is required")
         private Event.Country country;
         
         private MediaDto media;

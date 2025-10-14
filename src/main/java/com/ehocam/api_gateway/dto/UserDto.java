@@ -13,15 +13,16 @@ import jakarta.validation.constraints.NotNull;
 public class UserDto {
 
     public static class Create {
-        @Email
+        @NotBlank(message = "Email is required")
+        @Email(message = "Email must be valid")
         private String email;
         
-        @NotNull
+        @NotNull(message = "Auth provider is required")
         private User.AuthProvider authProvider;
         
         private String password;
         
-        @NotBlank
+        @NotBlank(message = "Display name is required")
         private String displayName;
         
         private String avatarUrl;
@@ -97,6 +98,7 @@ public class UserDto {
     }
 
     public static class UpdateRequest {
+        @NotBlank(message = "Display name is required")
         private String displayName;
         private String avatarUrl;
         private UserPreferencesDto preferences;
