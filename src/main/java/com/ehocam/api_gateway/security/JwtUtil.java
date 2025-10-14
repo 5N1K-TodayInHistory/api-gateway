@@ -66,6 +66,16 @@ public class JwtUtil {
         return createToken(claims, username, refreshTokenExpiration);
     }
 
+    public String generateAccessToken(String username) {
+        Map<String, Object> claims = new HashMap<>();
+        return createToken(claims, username, accessTokenExpiration);
+    }
+
+    public String generateRefreshToken(String username) {
+        Map<String, Object> claims = new HashMap<>();
+        return createToken(claims, username, refreshTokenExpiration);
+    }
+
     private String generateToken(Authentication authentication, long expiration) {
         Map<String, Object> claims = new HashMap<>();
         return createToken(claims, authentication.getName(), expiration);

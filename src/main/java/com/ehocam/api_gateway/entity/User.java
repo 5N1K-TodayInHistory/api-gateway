@@ -40,6 +40,9 @@ public class User {
     @Column(unique = true, nullable = true)
     private String email;
 
+    @Column(unique = true, nullable = false)
+    private String username;
+
     @Enumerated(EnumType.STRING)
     @NotNull
     @Column(name = "auth_provider")
@@ -100,6 +103,14 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public AuthProvider getAuthProvider() {

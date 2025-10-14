@@ -96,6 +96,20 @@ public class UserDto {
         public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     }
 
+    public static class UpdateRequest {
+        private String displayName;
+        private String avatarUrl;
+        private UserPreferencesDto preferences;
+
+        // Getters and Setters
+        public String getDisplayName() { return displayName; }
+        public void setDisplayName(String displayName) { this.displayName = displayName; }
+        public String getAvatarUrl() { return avatarUrl; }
+        public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+        public UserPreferencesDto getPreferences() { return preferences; }
+        public void setPreferences(UserPreferencesDto preferences) { this.preferences = preferences; }
+    }
+
     public static class UserPreferencesDto {
         private String viewMode = "GRID";
         private List<String> countries = List.of("TR");

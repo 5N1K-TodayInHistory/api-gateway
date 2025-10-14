@@ -44,6 +44,16 @@ public class AuthDto {
         private long expiresIn;
         private UserDto.Response user;
 
+        // Constructors
+        public TokenResponse() {}
+
+        public TokenResponse(String accessToken, String refreshToken, String tokenType, long expiresIn) {
+            this.accessToken = accessToken;
+            this.refreshToken = refreshToken;
+            this.tokenType = tokenType;
+            this.expiresIn = expiresIn;
+        }
+
         // Getters and Setters
         public String getAccessToken() { return accessToken; }
         public void setAccessToken(String accessToken) { this.accessToken = accessToken; }

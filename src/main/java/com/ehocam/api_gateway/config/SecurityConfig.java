@@ -15,17 +15,16 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.ehocam.api_gateway.security.CustomOAuth2UserService;
 import com.ehocam.api_gateway.security.CustomUserDetailsService;
 import com.ehocam.api_gateway.security.JwtAuthenticationFilter;
+import com.ehocam.api_gateway.security.OAuth2SuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -37,6 +36,12 @@ public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Autowired
+    private CustomOAuth2UserService customOAuth2UserService;
+
+    @Autowired
+    private OAuth2SuccessHandler oauth2SuccessHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -90,15 +95,14 @@ public class SecurityConfig {
                 // All other requests need authentication
                 .anyRequest().authenticated()
             )
-            // OAuth2 login disabled for now - will be enabled when OAuth2 controllers are implemented
-            // .oauth2Login(oauth2 -> oauth2
-            //     .loginPage("/api/auth/oauth2/login")
-            //     .defaultSuccessUrl("/api/auth/oauth2/success", true)
-            //     .failureUrl("/api/auth/oauth2/failure")
-            //     .userInfoEndpoint(userInfo -> userInfo
-            //         .userService(oauth2UserService())
-            //     )
-            // )
+            .oauth2Login(oauth2 -> oauth2
+                .loginPage("/api/auth/oauth2/login")
+                .successHandler(oauth2SuccessHandler)
+                .failureUrl("/api/auth/oauth2/failure")
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(customOAuth2UserService)
+                )
+            )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -119,18 +123,4 @@ public class SecurityConfig {
         return source;
     }
 
-    @Bean
-    public OAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService() {
-        // This will be implemented when we add OAuth2 user creation logic
-        return new CustomOAuth2UserService();
-    }
-
-    // Placeholder OAuth2UserService - will be implemented later
-    private static class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
-        @Override
-        public OAuth2User loadUser(OAuth2UserRequest userRequest) {
-            // TODO: Implement OAuth2 user loading and creation
-            throw new UnsupportedOperationException("OAuth2 user service not implemented yet");
-        }
-    }
 }
