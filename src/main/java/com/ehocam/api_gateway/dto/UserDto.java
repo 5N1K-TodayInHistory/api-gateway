@@ -113,33 +113,27 @@ public class UserDto {
     }
 
     public static class UserPreferencesDto {
-        private String viewMode = "GRID";
-        private List<String> countries = List.of("TR");
-        private List<String> categories = List.of("science", "politics", "sports", "history", "entertainment");
+        private String viewMode = "list";
+        private String selectedCountry = "US";
+        private List<String> selectedCategories = List.of("science", "sports");
         private String language = "en";
-        private NotificationPreferencesDto notifications = new NotificationPreferencesDto();
+        private boolean notifications = false;
+        private boolean darkMode = true;
 
         // Getters and Setters
         public String getViewMode() { return viewMode; }
         public void setViewMode(String viewMode) { this.viewMode = viewMode; }
-        public List<String> getCountries() { return countries; }
-        public void setCountries(List<String> countries) { this.countries = countries; }
-        public List<String> getCategories() { return categories; }
-        public void setCategories(List<String> categories) { this.categories = categories; }
+        public String getSelectedCountry() { return selectedCountry; }
+        public void setSelectedCountry(String selectedCountry) { this.selectedCountry = selectedCountry; }
+        public List<String> getSelectedCategories() { return selectedCategories; }
+        public void setSelectedCategories(List<String> selectedCategories) { this.selectedCategories = selectedCategories; }
         public String getLanguage() { return language; }
         public void setLanguage(String language) { this.language = language; }
-        public NotificationPreferencesDto getNotifications() { return notifications; }
-        public void setNotifications(NotificationPreferencesDto notifications) { this.notifications = notifications; }
+        public boolean isNotifications() { return notifications; }
+        public void setNotifications(boolean notifications) { this.notifications = notifications; }
+        public boolean isDarkMode() { return darkMode; }
+        public void setDarkMode(boolean darkMode) { this.darkMode = darkMode; }
 
-        public static class NotificationPreferencesDto {
-            private boolean daily = true;
-            private boolean breaking = true;
-
-            public boolean isDaily() { return daily; }
-            public void setDaily(boolean daily) { this.daily = daily; }
-            public boolean isBreaking() { return breaking; }
-            public void setBreaking(boolean breaking) { this.breaking = breaking; }
-        }
     }
 
     public static class DeviceDto {

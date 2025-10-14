@@ -1,6 +1,7 @@
 package com.ehocam.api_gateway.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,13 +77,18 @@ public class AuthService {
             // Convert DTO to Entity preferences
             User.UserPreferences preferences = new User.UserPreferences();
             preferences.setViewMode(request.getPreferences().getViewMode());
-            preferences.setCountries(request.getPreferences().getCountries());
-            preferences.setCategories(request.getPreferences().getCategories());
+            
+            // Convert selectedCountry to countries list
+            if (request.getPreferences().getSelectedCountry() != null) {
+                preferences.setCountries(List.of(request.getPreferences().getSelectedCountry()));
+            }
+            
+            preferences.setCategories(request.getPreferences().getSelectedCategories());
             preferences.setLanguage(request.getPreferences().getLanguage());
             
             User.UserPreferences.NotificationPreferences notifications = new User.UserPreferences.NotificationPreferences();
-            notifications.setDaily(request.getPreferences().getNotifications().isDaily());
-            notifications.setBreaking(request.getPreferences().getNotifications().isBreaking());
+            notifications.setDaily(request.getPreferences().isNotifications());
+            notifications.setBreaking(request.getPreferences().isNotifications());
             preferences.setNotifications(notifications);
             
             user.setPreferences(preferences);

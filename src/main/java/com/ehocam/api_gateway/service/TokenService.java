@@ -26,7 +26,7 @@ public class TokenService {
     
     private static final Logger logger = LoggerFactory.getLogger(TokenService.class);
     private static final int REFRESH_TOKEN_BYTES = 32; // 256 bits
-    private static final int ACCESS_TOKEN_EXPIRY_MINUTES = 15;
+    private static final int ACCESS_TOKEN_EXPIRY_MINUTES = 15000;
     private static final int REFRESH_TOKEN_EXPIRY_DAYS = 30;
     private static final int MAX_REFRESH_TOKEN_AGE_DAYS = 90;
     

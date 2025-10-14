@@ -3,6 +3,7 @@ package com.ehocam.api_gateway.dto;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+import com.ehocam.api_gateway.dto.UserDto.UserPreferencesDto;
 import com.ehocam.api_gateway.entity.User;
 
 public class UserInfo {
@@ -14,6 +15,7 @@ public class UserInfo {
     private String avatarUrl;
     private User.AuthProvider authProvider;
     private Set<User.Role> roles;
+    private UserPreferencesDto preferences;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
@@ -28,6 +30,7 @@ public class UserInfo {
         this.avatarUrl = user.getAvatarUrl();
         this.authProvider = user.getAuthProvider();
         this.roles = user.getRoles();
+        this.preferences = convertToUserPreferencesDto(user.getPreferences());
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
     }
@@ -103,5 +106,43 @@ public class UserInfo {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    public UserPreferencesDto getPreferences() {
+        return preferences;
+    }
+    
+    public void setPreferences(UserPreferencesDto preferences) {
+        this.preferences = preferences;
+    }
+    
+    // Helper method to convert User.UserPreferences to UserPreferencesDto
+    private UserPreferencesDto convertToUserPreferencesDto(User.UserPreferences userPreferences) {
+        if (userPreferences == null) {
+            // Return default preferences if user has no preferences
+            return new UserPreferencesDto();
+        }
+        
+        UserPreferencesDto dto = new UserPreferencesDto();
+        dto.setViewMode(userPreferences.getViewMode());
+        
+        // Convert countries list to selectedCountry (take first one)
+        if (userPreferences.getCountries() != null && !userPreferences.getCountries().isEmpty()) {
+            dto.setSelectedCountry(userPreferences.getCountries().get(0));
+        }
+        
+        // Convert categories list to selectedCategories
+        dto.setSelectedCategories(userPreferences.getCategories());
+        dto.setLanguage(userPreferences.getLanguage());
+        
+        // Convert NotificationPreferences to boolean (combine daily and breaking)
+        if (userPreferences.getNotifications() != null) {
+            dto.setNotifications(userPreferences.getNotifications().isDaily() || userPreferences.getNotifications().isBreaking());
+        }
+        
+        // Set default darkMode since it doesn't exist in entity
+        dto.setDarkMode(true);
+        
+        return dto;
     }
 }

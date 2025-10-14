@@ -188,17 +188,23 @@ public class AuthController {
         if (user.getPreferences() != null) {
             UserDto.UserPreferencesDto preferencesDto = new UserDto.UserPreferencesDto();
             preferencesDto.setViewMode(user.getPreferences().getViewMode());
-            preferencesDto.setCountries(user.getPreferences().getCountries());
-            preferencesDto.setCategories(user.getPreferences().getCategories());
+            
+            // Convert countries list to selectedCountry (take first one)
+            if (user.getPreferences().getCountries() != null && !user.getPreferences().getCountries().isEmpty()) {
+                preferencesDto.setSelectedCountry(user.getPreferences().getCountries().get(0));
+            }
+            
+            preferencesDto.setSelectedCategories(user.getPreferences().getCategories());
             preferencesDto.setLanguage(user.getPreferences().getLanguage());
             
+            // Convert NotificationPreferences to boolean
             if (user.getPreferences().getNotifications() != null) {
-                UserDto.UserPreferencesDto.NotificationPreferencesDto notificationDto = 
-                    new UserDto.UserPreferencesDto.NotificationPreferencesDto();
-                notificationDto.setDaily(user.getPreferences().getNotifications().isDaily());
-                notificationDto.setBreaking(user.getPreferences().getNotifications().isBreaking());
-                preferencesDto.setNotifications(notificationDto);
+                preferencesDto.setNotifications(user.getPreferences().getNotifications().isDaily() || 
+                                              user.getPreferences().getNotifications().isBreaking());
             }
+            
+            // Set default darkMode
+            preferencesDto.setDarkMode(true);
             
             response.setPreferences(preferencesDto);
         }
