@@ -1,5 +1,15 @@
 package com.ehocam.api_gateway.service;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Collections;
+import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.ehocam.api_gateway.config.GoogleOAuth2Config;
 import com.ehocam.api_gateway.entity.User;
 import com.ehocam.api_gateway.repository.UserRepository;
@@ -7,15 +17,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.Collections;
-import java.util.Optional;
 
 @Service
 public class GoogleOAuth2Service {
@@ -29,13 +30,40 @@ public class GoogleOAuth2Service {
     private UserRepository userRepository;
     
     public User verifyIdTokenAndGetUser(String idToken) throws GeneralSecurityException, IOException {
+        // Validate input
+        if (idToken == null || idToken.trim().isEmpty()) {
+            throw new IllegalArgumentException("ID token is null or empty");
+        }
+        
+        // Check if client ID is configured
+        String clientId = googleOAuth2Config.getClientId();
+        if (clientId == null || clientId.equals("your-google-client-id")) {
+            logger.warn("Google Client ID is not configured. Using default for testing purposes.");
+            clientId = "test-client-id"; // For testing only
+        }
+        
+        // Check token format (basic JWT format check)
+        String[] parts = idToken.split("\\.");
+        if (parts.length != 3) {
+            throw new IllegalArgumentException("Invalid JWT format. Expected 3 parts separated by dots.");
+        }
+        
+        logger.debug("Verifying Google ID token with client ID: {}", clientId);
+        
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
-                .setAudience(Collections.singletonList(googleOAuth2Config.getClientId()))
+                .setAudience(Collections.singletonList(clientId))
                 .build();
         
-        GoogleIdToken googleIdToken = verifier.verify(idToken);
+        GoogleIdToken googleIdToken;
+        try {
+            googleIdToken = verifier.verify(idToken);
+        } catch (Exception e) {
+            logger.error("Failed to verify Google ID token: {}", e.getMessage());
+            throw new IllegalArgumentException("Failed to verify Google ID token: " + e.getMessage());
+        }
+        
         if (googleIdToken == null) {
-            throw new IllegalArgumentException("Invalid ID token");
+            throw new IllegalArgumentException("Invalid Google ID token - verification failed");
         }
         
         GoogleIdToken.Payload payload = googleIdToken.getPayload();
