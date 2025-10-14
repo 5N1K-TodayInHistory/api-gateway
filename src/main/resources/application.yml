@@ -46,60 +46,18 @@ spring:
           max-idle: 8
           min-idle: 0
 
-  # OAuth2 Configuration
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID:your-google-client-id}
-            client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
-            authorization-grant-type: authorization_code
-            scope:
-              - openid
-              - profile
-              - email
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-          microsoft:
-            client-id: ${MICROSOFT_CLIENT_ID:your-microsoft-client-id}
-            client-secret: ${MICROSOFT_CLIENT_SECRET:your-microsoft-client-secret}
-            authorization-grant-type: authorization_code
-            scope:
-              - openid
-              - profile
-              - email
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-          apple:
-            client-id: ${APPLE_CLIENT_ID:your-apple-client-id}
-            client-secret: ${APPLE_CLIENT_SECRET:your-apple-client-secret}
-            authorization-grant-type: authorization_code
-            scope:
-              - openid
-              - name
-              - email
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-        provider:
-          google:
-            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
-            token-uri: https://www.googleapis.com/oauth2/v4/token
-            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
-            user-name-attribute: sub
-          microsoft:
-            authorization-uri: https://login.microsoftonline.com/common/oauth2/v2.0/authorize
-            token-uri: https://login.microsoftonline.com/common/oauth2/v2.0/token
-            user-info-uri: https://graph.microsoft.com/oidc/userinfo
-            user-name-attribute: sub
-          apple:
-            authorization-uri: https://appleid.apple.com/auth/authorize
-            token-uri: https://appleid.apple.com/auth/token
-            user-info-uri: https://appleid.apple.com/auth/userinfo
-            user-name-attribute: sub
-
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:mySecretKey123456789012345678901234567890}
+  secret: ${JWT_SECRET:5N1K2025SecretTokenKey}
   access-token-expiration: 900000 # 15 minutes
   refresh-token-expiration: 604800000 # 7 days
+
+# Google OAuth2 Configuration
+google:
+  oauth2:
+    client-id: ${GOOGLE_CLIENT_ID:your-google-client-id}
+    issuer: https://accounts.google.com
+    jwks-uri: https://www.googleapis.com/oauth2/v3/certs
 
 # Rate Limiting Configuration
 rate-limit:
@@ -112,7 +70,7 @@ cors:
   allowed-origins:
     - http://localhost:3000
     - http://localhost:8080
-    - https://your-mobile-app-domain.com
+    - https://api.5n1k.io
   allowed-methods:
     - GET
     - POST
@@ -127,7 +85,6 @@ cors:
 server:
   port: 8080
   servlet:
-    context-path: /api
 
 # Logging Configuration
 logging:

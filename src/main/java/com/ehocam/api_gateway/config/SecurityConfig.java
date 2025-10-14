@@ -21,10 +21,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.ehocam.api_gateway.security.CustomOAuth2UserService;
 import com.ehocam.api_gateway.security.CustomUserDetailsService;
 import com.ehocam.api_gateway.security.JwtAuthenticationFilter;
-import com.ehocam.api_gateway.security.OAuth2SuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -37,11 +35,6 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Autowired
-    private CustomOAuth2UserService customOAuth2UserService;
-
-    @Autowired
-    private OAuth2SuccessHandler oauth2SuccessHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -94,14 +87,6 @@ public class SecurityConfig {
                 
                 // All other requests need authentication
                 .anyRequest().authenticated()
-            )
-            .oauth2Login(oauth2 -> oauth2
-                .loginPage("/api/auth/oauth2/login")
-                .successHandler(oauth2SuccessHandler)
-                .failureUrl("/api/auth/oauth2/failure")
-                .userInfoEndpoint(userInfo -> userInfo
-                    .userService(customOAuth2UserService)
-                )
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

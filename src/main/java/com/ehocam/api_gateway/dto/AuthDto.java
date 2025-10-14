@@ -17,6 +17,15 @@ public class AuthDto {
         public void setRedirectUri(String redirectUri) { this.redirectUri = redirectUri; }
     }
 
+    public static class GoogleOAuthRequest {
+        @NotBlank(message = "ID token is required")
+        private String idToken;
+
+        // Getters and Setters
+        public String getIdToken() { return idToken; }
+        public void setIdToken(String idToken) { this.idToken = idToken; }
+    }
+
     public static class GuestRequest {
         private String fcmToken;
         private String platform;
