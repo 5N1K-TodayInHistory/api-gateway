@@ -31,6 +31,7 @@ public class JwtUtil {
     private long refreshTokenExpiration;
 
     private SecretKey getSigningKey() {
+        // Use the secret directly as bytes
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
@@ -90,7 +91,7 @@ public class JwtUtil {
                 .setSubject(subject)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 

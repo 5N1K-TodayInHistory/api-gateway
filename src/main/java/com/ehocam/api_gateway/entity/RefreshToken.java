@@ -58,7 +58,7 @@ public class RefreshToken {
     @JoinColumn(name = "rotated_from_id")
     private RefreshToken rotatedFrom;
     
-    @Column(name = "ip_created", columnDefinition = "inet")
+    @Column(name = "ip_created", length = 45)
     private String ipCreated;
     
     @Column(name = "ua_created")

@@ -59,11 +59,15 @@ public class GoogleOAuth2Service {
             googleIdToken = verifier.verify(idToken);
         } catch (Exception e) {
             logger.error("Failed to verify Google ID token: {}", e.getMessage());
+            // Check if it's an expiration error
+            if (e.getMessage().contains("expired") || e.getMessage().contains("exp")) {
+                throw new IllegalArgumentException("Google ID token has expired. Please get a new token from Google.");
+            }
             throw new IllegalArgumentException("Failed to verify Google ID token: " + e.getMessage());
         }
         
         if (googleIdToken == null) {
-            throw new IllegalArgumentException("Invalid Google ID token - verification failed");
+            throw new IllegalArgumentException("Invalid Google ID token - verification failed. Token may be expired or malformed.");
         }
         
         GoogleIdToken.Payload payload = googleIdToken.getPayload();
