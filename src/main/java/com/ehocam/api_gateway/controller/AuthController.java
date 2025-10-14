@@ -115,18 +115,21 @@ public class AuthController {
             return ResponseEntity.ok(ApiResponse.success(tokens));
         } catch (SecurityException e) {
             // Return appropriate HTTP status based on error type
-            if (e.getMessage().equals("refresh_invalid")) {
-                return ResponseEntity.status(401)
-                        .body(ApiResponse.error("Invalid refresh token"));
-            } else if (e.getMessage().equals("refresh_expired")) {
-                return ResponseEntity.status(401)
-                        .body(ApiResponse.error("Refresh token has expired"));
-            } else if (e.getMessage().equals("refresh_reused")) {
-                return ResponseEntity.status(401)
-                        .body(ApiResponse.error("Refresh token has been reused - security violation"));
-            } else if (e.getMessage().equals("refresh_revoked")) {
-                return ResponseEntity.status(403)
-                        .body(ApiResponse.error("Refresh token has been revoked"));
+            switch (e.getMessage()) {
+                case "refresh_invalid":
+                    return ResponseEntity.status(401)
+                            .body(ApiResponse.error("Invalid refresh token"));
+                case "refresh_expired":
+                    return ResponseEntity.status(401)
+                            .body(ApiResponse.error("Refresh token has expired"));
+                case "refresh_reused":
+                    return ResponseEntity.status(401)
+                            .body(ApiResponse.error("Refresh token has been reused - security violation"));
+                case "refresh_revoked":
+                    return ResponseEntity.status(403)
+                            .body(ApiResponse.error("Refresh token has been revoked"));
+                default:
+                    break;
             }
             return ResponseEntity.status(401)
                     .body(ApiResponse.error("Token refresh failed"));
