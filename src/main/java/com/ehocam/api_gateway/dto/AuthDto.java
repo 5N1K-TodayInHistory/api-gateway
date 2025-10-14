@@ -76,8 +76,6 @@ public class AuthDto {
         private String refreshToken;
         private String tokenType = "Bearer";
         private long expiresIn;
-        private UserDto.Response user;
-
         // Constructors
         public TokenResponse() {}
 
@@ -97,7 +95,5 @@ public class AuthDto {
         public void setTokenType(String tokenType) { this.tokenType = tokenType; }
         public long getExpiresIn() { return expiresIn; }
         public void setExpiresIn(long expiresIn) { this.expiresIn = expiresIn; }
-        public UserDto.Response getUser() { return user; }
-        public void setUser(UserDto.Response user) { this.user = user; }
     }
 }
