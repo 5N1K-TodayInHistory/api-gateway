@@ -24,6 +24,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         AND (:country IS NULL OR country = :country)
         AND (:category IS NULL OR category = :category)
         ORDER BY 
+            ratio DESC,
             CASE WHEN :sort = 'DATE_DESC' THEN date END DESC,
             CASE WHEN :sort = 'RECENT' THEN created_at END DESC,
             CASE WHEN :sort = 'POPULARITY' THEN (COALESCE((engagement->>'likes')::bigint, 0) + COALESCE((engagement->>'comments')::bigint, 0) + COALESCE((engagement->>'shares')::bigint, 0)) END DESC,
@@ -57,6 +58,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         AND (:country IS NULL OR country = :country)
         AND (:category IS NULL OR category = :category)
         ORDER BY 
+            ratio DESC,
             CASE WHEN :sort = 'DATE_DESC' THEN date END DESC,
             CASE WHEN :sort = 'RECENT' THEN created_at END DESC,
             CASE WHEN :sort = 'POPULARITY' THEN (COALESCE((engagement->>'likes')::bigint, 0) + COALESCE((engagement->>'comments')::bigint, 0) + COALESCE((engagement->>'shares')::bigint, 0)) END DESC,
@@ -81,12 +83,19 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         Pageable pageable
     );
 
-    List<Event> findByCountryOrderByDateDesc(Event.Country country);
+    List<Event> findByCountryOrderByRatioDescDateDesc(Event.Country country);
 
-    List<Event> findByCategoryOrderByDateDesc(Event.Category category);
+    List<Event> findByCategoryOrderByRatioDescDateDesc(Event.Category category);
 
-    List<Event> findByCountryAndCategoryOrderByDateDesc(Event.Country country, Event.Category category);
+    List<Event> findByCountryAndCategoryOrderByRatioDescDateDesc(Event.Country country, Event.Category category);
 
-    @Query("SELECT e FROM Event e WHERE e.date >= :startDate AND e.date <= :endDate ORDER BY e.date DESC")
+    @Query("SELECT e FROM Event e WHERE e.date >= :startDate AND e.date <= :endDate ORDER BY e.ratio DESC, e.date DESC")
     List<Event> findEventsByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    // Required methods for EventService
+    @Query("SELECT e FROM Event e WHERE e.date >= :startDate AND e.date <= :endDate ORDER BY e.ratio DESC, e.date DESC")
+    Page<Event> findByDateBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, Pageable pageable);
+
+    @Query("SELECT e FROM Event e WHERE DATE(e.date) = DATE(:date) ORDER BY e.ratio DESC, e.date DESC")
+    Page<Event> findByDate(@Param("date") LocalDateTime date, Pageable pageable);
 }

@@ -29,6 +29,8 @@ public class EventDto {
         @NotNull(message = "Event country is required")
         private Event.Country country;
         
+        private Integer ratio = 50; // Default importance value (1-100)
+        
         private MediaDto media;
         
         private Map<String, I18nContentDto> i18n;
@@ -59,6 +61,7 @@ public class EventDto {
         private LocalDateTime date;
         private Event.Category category;
         private Event.Country country;
+        private Integer ratio;
         private MediaDto media;
         private Map<String, I18nContentDto> i18n;
 
@@ -75,6 +78,8 @@ public class EventDto {
         public void setCategory(Event.Category category) { this.category = category; }
         public Event.Country getCountry() { return country; }
         public void setCountry(Event.Country country) { this.country = country; }
+        public Integer getRatio() { return ratio; }
+        public void setRatio(Integer ratio) { this.ratio = ratio; }
         public MediaDto getMedia() { return media; }
         public void setMedia(MediaDto media) { this.media = media; }
         public Map<String, I18nContentDto> getI18n() { return i18n; }
@@ -89,6 +94,7 @@ public class EventDto {
         private LocalDateTime date;
         private Event.Category category;
         private Event.Country country;
+        private Integer ratio;
         private MediaDto media;
         private EngagementDto engagement;
         private LocalDateTime createdAt;
@@ -110,6 +116,8 @@ public class EventDto {
         public void setCategory(Event.Category category) { this.category = category; }
         public Event.Country getCountry() { return country; }
         public void setCountry(Event.Country country) { this.country = country; }
+        public Integer getRatio() { return ratio; }
+        public void setRatio(Integer ratio) { this.ratio = ratio; }
         public MediaDto getMedia() { return media; }
         public void setMedia(MediaDto media) { this.media = media; }
         public EngagementDto getEngagement() { return engagement; }
@@ -127,6 +135,7 @@ public class EventDto {
         private String bannerUrl;
         private String youtubeId;
         private String audioUrl;
+        private Map<String, MediaI18nDto> i18n; // Language-based media files
 
         // Getters and Setters
         public String getThumbnailUrl() { return thumbnailUrl; }
@@ -137,6 +146,22 @@ public class EventDto {
         public void setYoutubeId(String youtubeId) { this.youtubeId = youtubeId; }
         public String getAudioUrl() { return audioUrl; }
         public void setAudioUrl(String audioUrl) { this.audioUrl = audioUrl; }
+        public Map<String, MediaI18nDto> getI18n() { return i18n; }
+        public void setI18n(Map<String, MediaI18nDto> i18n) { this.i18n = i18n; }
+    }
+
+    public static class MediaI18nDto {
+        private String audioUrl; // Language-based audio file
+        private String thumbnailUrl; // Language-based thumbnail (optional)
+        private String bannerUrl; // Language-based banner (optional)
+
+        // Getters and Setters
+        public String getAudioUrl() { return audioUrl; }
+        public void setAudioUrl(String audioUrl) { this.audioUrl = audioUrl; }
+        public String getThumbnailUrl() { return thumbnailUrl; }
+        public void setThumbnailUrl(String thumbnailUrl) { this.thumbnailUrl = thumbnailUrl; }
+        public String getBannerUrl() { return bannerUrl; }
+        public void setBannerUrl(String bannerUrl) { this.bannerUrl = bannerUrl; }
     }
 
     public static class EngagementDto {

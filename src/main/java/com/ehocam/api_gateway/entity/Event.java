@@ -57,6 +57,9 @@ public class Event {
     @Column(nullable = false)
     private Country country;
 
+    @Column(name = "ratio", nullable = false)
+    private Integer ratio = 50; // Default importance value (1-100)
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "media", columnDefinition = "jsonb")
     private Media media;
@@ -147,6 +150,14 @@ public class Event {
         this.country = country;
     }
 
+    public Integer getRatio() {
+        return ratio;
+    }
+
+    public void setRatio(Integer ratio) {
+        this.ratio = ratio;
+    }
+
     public Media getMedia() {
         return media;
     }
@@ -202,6 +213,9 @@ public class Event {
         private String bannerUrl;
         private String youtubeId;
         private String audioUrl;
+        private Map<String, MediaI18n> i18n; // Language-based media files
+
+        public Media() {}
 
         // Getters and Setters
         public String getThumbnailUrl() { return thumbnailUrl; }
@@ -212,6 +226,28 @@ public class Event {
         public void setYoutubeId(String youtubeId) { this.youtubeId = youtubeId; }
         public String getAudioUrl() { return audioUrl; }
         public void setAudioUrl(String audioUrl) { this.audioUrl = audioUrl; }
+        public Map<String, MediaI18n> getI18n() { return i18n; }
+        public void setI18n(Map<String, MediaI18n> i18n) { this.i18n = i18n; }
+    }
+
+    public static class MediaI18n {
+        private String audioUrl; // Language-based audio file
+        private String thumbnailUrl; // Language-based thumbnail (optional)
+        private String bannerUrl; // Language-based banner (optional)
+
+        public MediaI18n() {}
+
+        public MediaI18n(String audioUrl) {
+            this.audioUrl = audioUrl;
+        }
+
+        // Getters and Setters
+        public String getAudioUrl() { return audioUrl; }
+        public void setAudioUrl(String audioUrl) { this.audioUrl = audioUrl; }
+        public String getThumbnailUrl() { return thumbnailUrl; }
+        public void setThumbnailUrl(String thumbnailUrl) { this.thumbnailUrl = thumbnailUrl; }
+        public String getBannerUrl() { return bannerUrl; }
+        public void setBannerUrl(String bannerUrl) { this.bannerUrl = bannerUrl; }
     }
 
     public static class Engagement {
