@@ -14,8 +14,11 @@ import com.ehocam.api_gateway.dto.ApiResponse;
 import com.ehocam.api_gateway.dto.LanguageDto;
 import com.ehocam.api_gateway.service.LanguageService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/languages")
+@Tag(name = "Languages", description = "Language management endpoints with multilingual support")
 public class LanguageController {
 
     @Autowired

@@ -14,8 +14,11 @@ import com.ehocam.api_gateway.dto.ApiResponse;
 import com.ehocam.api_gateway.dto.EventTypeDto;
 import com.ehocam.api_gateway.service.EventTypeService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/event-types")
+@Tag(name = "Event Types", description = "Event type management endpoints with multilingual support")
 public class EventTypeController {
 
     @Autowired

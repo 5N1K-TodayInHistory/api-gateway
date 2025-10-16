@@ -14,8 +14,11 @@ import com.ehocam.api_gateway.dto.ApiResponse;
 import com.ehocam.api_gateway.dto.CountryDto;
 import com.ehocam.api_gateway.service.CountryService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/countries")
+@Tag(name = "Countries", description = "Country management endpoints with multilingual support")
 public class CountryController {
 
     @Autowired
