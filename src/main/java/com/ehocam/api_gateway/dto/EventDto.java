@@ -1,194 +1,302 @@
 package com.ehocam.api_gateway.dto;
 
-import java.time.LocalDateTime;
-import java.util.Map;
+import java.util.List;
 
-import com.ehocam.api_gateway.entity.Event;
-
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class EventDto {
 
-    public static class Create {
-        @NotBlank(message = "Event title is required")
-        private String title;
-        
-        @NotBlank(message = "Event summary is required")
-        private String summary;
-        
-        @NotBlank(message = "Event content is required")
-        private String content;
-        
-        @NotNull(message = "Event date is required")
-        private LocalDateTime date;
-        
-        @NotNull(message = "Event category is required")
-        private Event.Category category;
-        
-        @NotNull(message = "Event country is required")
-        private Event.Country country;
-        
-        private Integer ratio = 50; // Default importance value (1-100)
-        
-        private MediaDto media;
-        
-        private Map<String, I18nContentDto> i18n;
-
-        // Getters and Setters
-        public String getTitle() { return title; }
-        public void setTitle(String title) { this.title = title; }
-        public String getSummary() { return summary; }
-        public void setSummary(String summary) { this.summary = summary; }
-        public String getContent() { return content; }
-        public void setContent(String content) { this.content = content; }
-        public LocalDateTime getDate() { return date; }
-        public void setDate(LocalDateTime date) { this.date = date; }
-        public Event.Category getCategory() { return category; }
-        public void setCategory(Event.Category category) { this.category = category; }
-        public Event.Country getCountry() { return country; }
-        public void setCountry(Event.Country country) { this.country = country; }
-        public MediaDto getMedia() { return media; }
-        public void setMedia(MediaDto media) { this.media = media; }
-        public Map<String, I18nContentDto> getI18n() { return i18n; }
-        public void setI18n(Map<String, I18nContentDto> i18n) { this.i18n = i18n; }
-    }
-
-    public static class Update {
-        private String title;
-        private String summary;
-        private String content;
-        private LocalDateTime date;
-        private Event.Category category;
-        private Event.Country country;
-        private Integer ratio;
-        private MediaDto media;
-        private Map<String, I18nContentDto> i18n;
-
-        // Getters and Setters
-        public String getTitle() { return title; }
-        public void setTitle(String title) { this.title = title; }
-        public String getSummary() { return summary; }
-        public void setSummary(String summary) { this.summary = summary; }
-        public String getContent() { return content; }
-        public void setContent(String content) { this.content = content; }
-        public LocalDateTime getDate() { return date; }
-        public void setDate(LocalDateTime date) { this.date = date; }
-        public Event.Category getCategory() { return category; }
-        public void setCategory(Event.Category category) { this.category = category; }
-        public Event.Country getCountry() { return country; }
-        public void setCountry(Event.Country country) { this.country = country; }
-        public Integer getRatio() { return ratio; }
-        public void setRatio(Integer ratio) { this.ratio = ratio; }
-        public MediaDto getMedia() { return media; }
-        public void setMedia(MediaDto media) { this.media = media; }
-        public Map<String, I18nContentDto> getI18n() { return i18n; }
-        public void setI18n(Map<String, I18nContentDto> i18n) { this.i18n = i18n; }
-    }
-
     public static class Response {
-        private Long id;
+        @JsonProperty("id")
+        private String id;
+
+        @JsonProperty("title")
         private String title;
-        private String summary;
-        private String content;
-        private LocalDateTime date;
-        private Event.Category category;
-        private Event.Country country;
-        private Integer ratio;
-        private MediaDto media;
-        private EngagementDto engagement;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
-        private Map<String, I18nContentDto> i18n;
 
-        // Getters and Setters
-        public Long getId() { return id; }
-        public void setId(Long id) { this.id = id; }
-        public String getTitle() { return title; }
-        public void setTitle(String title) { this.title = title; }
-        public String getSummary() { return summary; }
-        public void setSummary(String summary) { this.summary = summary; }
-        public String getContent() { return content; }
-        public void setContent(String content) { this.content = content; }
-        public LocalDateTime getDate() { return date; }
-        public void setDate(LocalDateTime date) { this.date = date; }
-        public Event.Category getCategory() { return category; }
-        public void setCategory(Event.Category category) { this.category = category; }
-        public Event.Country getCountry() { return country; }
-        public void setCountry(Event.Country country) { this.country = country; }
-        public Integer getRatio() { return ratio; }
-        public void setRatio(Integer ratio) { this.ratio = ratio; }
-        public MediaDto getMedia() { return media; }
-        public void setMedia(MediaDto media) { this.media = media; }
-        public EngagementDto getEngagement() { return engagement; }
-        public void setEngagement(EngagementDto engagement) { this.engagement = engagement; }
-        public LocalDateTime getCreatedAt() { return createdAt; }
-        public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-        public LocalDateTime getUpdatedAt() { return updatedAt; }
-        public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-        public Map<String, I18nContentDto> getI18n() { return i18n; }
-        public void setI18n(Map<String, I18nContentDto> i18n) { this.i18n = i18n; }
-    }
+        @JsonProperty("description")
+        private String description;
 
-    public static class MediaDto {
-        private String thumbnailUrl;
-        private String bannerUrl;
-        private String youtubeId;
-        private String audioUrl;
-        private Map<String, MediaI18nDto> i18n; // Language-based media files
-
-        // Getters and Setters
-        public String getThumbnailUrl() { return thumbnailUrl; }
-        public void setThumbnailUrl(String thumbnailUrl) { this.thumbnailUrl = thumbnailUrl; }
-        public String getBannerUrl() { return bannerUrl; }
-        public void setBannerUrl(String bannerUrl) { this.bannerUrl = bannerUrl; }
-        public String getYoutubeId() { return youtubeId; }
-        public void setYoutubeId(String youtubeId) { this.youtubeId = youtubeId; }
-        public String getAudioUrl() { return audioUrl; }
-        public void setAudioUrl(String audioUrl) { this.audioUrl = audioUrl; }
-        public Map<String, MediaI18nDto> getI18n() { return i18n; }
-        public void setI18n(Map<String, MediaI18nDto> i18n) { this.i18n = i18n; }
-    }
-
-    public static class MediaI18nDto {
-        private String audioUrl; // Language-based audio file
-        private String thumbnailUrl; // Language-based thumbnail (optional)
-        private String bannerUrl; // Language-based banner (optional)
-
-        // Getters and Setters
-        public String getAudioUrl() { return audioUrl; }
-        public void setAudioUrl(String audioUrl) { this.audioUrl = audioUrl; }
-        public String getThumbnailUrl() { return thumbnailUrl; }
-        public void setThumbnailUrl(String thumbnailUrl) { this.thumbnailUrl = thumbnailUrl; }
-        public String getBannerUrl() { return bannerUrl; }
-        public void setBannerUrl(String bannerUrl) { this.bannerUrl = bannerUrl; }
-    }
-
-    public static class EngagementDto {
-        private long likes = 0;
-        private long comments = 0;
-        private long shares = 0;
-
-        // Getters and Setters
-        public long getLikes() { return likes; }
-        public void setLikes(long likes) { this.likes = likes; }
-        public long getComments() { return comments; }
-        public void setComments(long comments) { this.comments = comments; }
-        public long getShares() { return shares; }
-        public void setShares(long shares) { this.shares = shares; }
-    }
-
-    public static class I18nContentDto {
-        private String title;
-        private String summary;
+        @JsonProperty("content")
         private String content;
 
+        @JsonProperty("date")
+        private String date;
+
+        @JsonProperty("type")
+        private String type;
+
+        @JsonProperty("country")
+        private String country;
+
+        @JsonProperty("imageUrl")
+        private String imageUrl;
+
+        @JsonProperty("videoUrls")
+        private List<String> videoUrls;
+
+        @JsonProperty("audioUrls")
+        private List<String> audioUrls;
+
+        @JsonProperty("references")
+        private List<ReferenceDto> references;
+
+        @JsonProperty("likes")
+        private Integer likes;
+
+        @JsonProperty("comments")
+        private Integer comments;
+
+        // Constructors
+        public Response() {}
+
+        public Response(String id, String title, String description, String content, String date,
+                       String type, String country, String imageUrl, List<String> videoUrls,
+                       List<String> audioUrls, List<ReferenceDto> references, Integer likes,
+                       Integer comments) {
+            this.id = id;
+            this.title = title;
+            this.description = description;
+            this.content = content;
+            this.date = date;
+            this.type = type;
+            this.country = country;
+            this.imageUrl = imageUrl;
+            this.videoUrls = videoUrls;
+            this.audioUrls = audioUrls;
+            this.references = references;
+            this.likes = likes;
+            this.comments = comments;
+        }
+
         // Getters and Setters
-        public String getTitle() { return title; }
-        public void setTitle(String title) { this.title = title; }
-        public String getSummary() { return summary; }
-        public void setSummary(String summary) { this.summary = summary; }
-        public String getContent() { return content; }
-        public void setContent(String content) { this.content = content; }
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public String getContent() {
+            return content;
+        }
+
+        public void setContent(String content) {
+            this.content = content;
+        }
+
+        public String getDate() {
+            return date;
+        }
+
+        public void setDate(String date) {
+            this.date = date;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public String getCountry() {
+            return country;
+        }
+
+        public void setCountry(String country) {
+            this.country = country;
+        }
+
+        public String getImageUrl() {
+            return imageUrl;
+        }
+
+        public void setImageUrl(String imageUrl) {
+            this.imageUrl = imageUrl;
+        }
+
+        public List<String> getVideoUrls() {
+            return videoUrls;
+        }
+
+        public void setVideoUrls(List<String> videoUrls) {
+            this.videoUrls = videoUrls;
+        }
+
+        public List<String> getAudioUrls() {
+            return audioUrls;
+        }
+
+        public void setAudioUrls(List<String> audioUrls) {
+            this.audioUrls = audioUrls;
+        }
+
+        public List<ReferenceDto> getReferences() {
+            return references;
+        }
+
+        public void setReferences(List<ReferenceDto> references) {
+            this.references = references;
+        }
+
+        public Integer getLikes() {
+            return likes;
+        }
+
+        public void setLikes(Integer likes) {
+            this.likes = likes;
+        }
+
+        public Integer getComments() {
+            return comments;
+        }
+
+        public void setComments(Integer comments) {
+            this.comments = comments;
+        }
+
+        @Override
+        public String toString() {
+            return "EventDto.Response{" +
+                    "id='" + id + '\'' +
+                    ", title='" + title + '\'' +
+                    ", description='" + description + '\'' +
+                    ", content='" + content + '\'' +
+                    ", date='" + date + '\'' +
+                    ", type='" + type + '\'' +
+                    ", country='" + country + '\'' +
+                    ", imageUrl='" + imageUrl + '\'' +
+                    ", videoUrls=" + videoUrls +
+                    ", audioUrls=" + audioUrls +
+                    ", references=" + references +
+                    ", likes=" + likes +
+                    ", comments=" + comments +
+                    '}';
+        }
+    }
+
+    public static class ReferenceDto {
+        @JsonProperty("title")
+        private String title;
+
+        @JsonProperty("url")
+        private String url;
+
+        // Constructors
+        public ReferenceDto() {}
+
+        public ReferenceDto(String title, String url) {
+            this.title = title;
+            this.url = url;
+        }
+
+        // Getters and Setters
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        @Override
+        public String toString() {
+            return "ReferenceDto{" +
+                    "title='" + title + '\'' +
+                    ", url='" + url + '\'' +
+                    '}';
+        }
+    }
+
+    public static class LikeRequest {
+        @JsonProperty("eventId")
+        private Long eventId;
+
+        // Constructors
+        public LikeRequest() {}
+
+        public LikeRequest(Long eventId) {
+            this.eventId = eventId;
+        }
+
+        // Getters and Setters
+        public Long getEventId() {
+            return eventId;
+        }
+
+        public void setEventId(Long eventId) {
+            this.eventId = eventId;
+        }
+    }
+
+    public static class LikeResponse {
+        @JsonProperty("success")
+        private Boolean success;
+
+        @JsonProperty("liked")
+        private Boolean liked;
+
+        @JsonProperty("likesCount")
+        private Integer likesCount;
+
+        // Constructors
+        public LikeResponse() {}
+
+        public LikeResponse(Boolean success, Boolean liked, Integer likesCount) {
+            this.success = success;
+            this.liked = liked;
+            this.likesCount = likesCount;
+        }
+
+        // Getters and Setters
+        public Boolean getSuccess() {
+            return success;
+        }
+
+        public void setSuccess(Boolean success) {
+            this.success = success;
+        }
+
+        public Boolean getLiked() {
+            return liked;
+        }
+
+        public void setLiked(Boolean liked) {
+            this.liked = liked;
+        }
+
+        public Integer getLikesCount() {
+            return likesCount;
+        }
+
+        public void setLikesCount(Integer likesCount) {
+            this.likesCount = likesCount;
+        }
     }
 }

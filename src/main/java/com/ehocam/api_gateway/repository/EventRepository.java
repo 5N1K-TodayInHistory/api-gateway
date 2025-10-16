@@ -1,7 +1,6 @@
 package com.ehocam.api_gateway.repository;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,87 +14,81 @@ import com.ehocam.api_gateway.entity.Event;
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
 
-    // Full-text search using PostgreSQL's to_tsvector and plainto_tsquery
+    /**
+     * Find events with filters and pagination
+     */
     @Query(value = """
         SELECT * FROM events 
-        WHERE (:q IS NULL OR to_tsvector('english', title || ' ' || summary || ' ' || content) 
-              @@ plainto_tsquery('english', :q))
-        AND (:date IS NULL OR DATE(date) = DATE(:date))
+        WHERE (:date IS NULL OR DATE(date) = DATE(:date))
+        AND (:type IS NULL OR type = :type)
         AND (:country IS NULL OR country = :country)
-        AND (:category IS NULL OR category = :category)
         ORDER BY 
-            ratio DESC,
             CASE WHEN :sort = 'DATE_DESC' THEN date END DESC,
+            CASE WHEN :sort = 'LIKES_DESC' THEN likes_count END DESC,
             CASE WHEN :sort = 'RECENT' THEN created_at END DESC,
-            CASE WHEN :sort = 'POPULARITY' THEN (COALESCE((engagement->>'likes')::bigint, 0) + COALESCE((engagement->>'comments')::bigint, 0) + COALESCE((engagement->>'shares')::bigint, 0)) END DESC,
-            created_at DESC
+            date DESC
         """, nativeQuery = true, countQuery = """
         SELECT COUNT(*) FROM events 
-        WHERE (:q IS NULL OR to_tsvector('english', title || ' ' || summary || ' ' || content) 
-              @@ plainto_tsquery('english', :q))
-        AND (:date IS NULL OR DATE(date) = DATE(:date))
+        WHERE (:date IS NULL OR DATE(date) = DATE(:date))
+        AND (:type IS NULL OR type = :type)
         AND (:country IS NULL OR country = :country)
-        AND (:category IS NULL OR category = :category)
         """)
     Page<Event> findEventsWithFilters(
-        @Param("q") String query,
         @Param("date") LocalDateTime date,
-        @Param("country") Event.Country country,
-        @Param("category") Event.Category category,
+        @Param("type") String type,
+        @Param("country") String country,
         @Param("sort") String sort,
         Pageable pageable
     );
 
-    // Alternative search using ILIKE for case-insensitive partial matching
-    @Query(value = """
-        SELECT * FROM events 
-        WHERE (:q IS NULL OR (
-            LOWER(title) LIKE LOWER(CONCAT('%', :q, '%')) OR
-            LOWER(summary) LIKE LOWER(CONCAT('%', :q, '%')) OR
-            LOWER(content) LIKE LOWER(CONCAT('%', :q, '%'))
-        ))
-        AND (:date IS NULL OR DATE(date) = DATE(:date))
-        AND (:country IS NULL OR country = :country)
-        AND (:category IS NULL OR category = :category)
-        ORDER BY 
-            ratio DESC,
-            CASE WHEN :sort = 'DATE_DESC' THEN date END DESC,
-            CASE WHEN :sort = 'RECENT' THEN created_at END DESC,
-            CASE WHEN :sort = 'POPULARITY' THEN (COALESCE((engagement->>'likes')::bigint, 0) + COALESCE((engagement->>'comments')::bigint, 0) + COALESCE((engagement->>'shares')::bigint, 0)) END DESC,
-            created_at DESC
-        """, nativeQuery = true, countQuery = """
-        SELECT COUNT(*) FROM events 
-        WHERE (:q IS NULL OR (
-            LOWER(title) LIKE LOWER(CONCAT('%', :q, '%')) OR
-            LOWER(summary) LIKE LOWER(CONCAT('%', :q, '%')) OR
-            LOWER(content) LIKE LOWER(CONCAT('%', :q, '%'))
-        ))
-        AND (:date IS NULL OR DATE(date) = DATE(:date))
-        AND (:country IS NULL OR country = :country)
-        AND (:category IS NULL OR category = :category)
-        """)
-    Page<Event> findEventsWithFiltersIlike(
-        @Param("q") String query,
-        @Param("date") LocalDateTime date,
-        @Param("country") Event.Country country,
-        @Param("category") Event.Category category,
-        @Param("sort") String sort,
-        Pageable pageable
-    );
-
-    List<Event> findByCountryOrderByRatioDescDateDesc(Event.Country country);
-
-    List<Event> findByCategoryOrderByRatioDescDateDesc(Event.Category category);
-
-    List<Event> findByCountryAndCategoryOrderByRatioDescDateDesc(Event.Country country, Event.Category category);
-
-    @Query("SELECT e FROM Event e WHERE e.date >= :startDate AND e.date <= :endDate ORDER BY e.ratio DESC, e.date DESC")
-    List<Event> findEventsByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
-
-    // Required methods for EventService
-    @Query("SELECT e FROM Event e WHERE e.date >= :startDate AND e.date <= :endDate ORDER BY e.ratio DESC, e.date DESC")
+    /**
+     * Find events by date range
+     */
+    @Query("SELECT e FROM Event e WHERE e.date >= :startDate AND e.date <= :endDate ORDER BY e.date DESC")
     Page<Event> findByDateBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, Pageable pageable);
 
-    @Query("SELECT e FROM Event e WHERE DATE(e.date) = DATE(:date) ORDER BY e.ratio DESC, e.date DESC")
-    Page<Event> findByDate(@Param("date") LocalDateTime date, Pageable pageable);
+    /**
+     * Find events by specific date
+     */
+    @Query("SELECT e FROM Event e WHERE e.date >= :startOfDay AND e.date < :endOfDay ORDER BY e.date DESC")
+    Page<Event> findByDate(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay, Pageable pageable);
+
+    /**
+     * Find events by type
+     */
+    Page<Event> findByTypeOrderByDateDesc(String type, Pageable pageable);
+
+    /**
+     * Find events by country
+     */
+    Page<Event> findByCountryOrderByDateDesc(String country, Pageable pageable);
+
+    /**
+     * Find events by type and country
+     */
+    Page<Event> findByTypeAndCountryOrderByDateDesc(String type, String country, Pageable pageable);
+
+    /**
+     * Find today's events
+     */
+    @Query("SELECT e FROM Event e WHERE e.date >= :startOfToday AND e.date < :endOfToday ORDER BY e.date DESC")
+    Page<Event> findTodaysEvents(@Param("startOfToday") LocalDateTime startOfToday, @Param("endOfToday") LocalDateTime endOfToday, Pageable pageable);
+
+    /**
+     * Find today's events by type
+     */
+    @Query("SELECT e FROM Event e WHERE e.date >= :startOfToday AND e.date < :endOfToday AND e.type = :type ORDER BY e.date DESC")
+    Page<Event> findTodaysEventsByType(@Param("startOfToday") LocalDateTime startOfToday, @Param("endOfToday") LocalDateTime endOfToday, @Param("type") String type, Pageable pageable);
+
+    /**
+     * Find today's events by country
+     */
+    @Query("SELECT e FROM Event e WHERE e.date >= :startOfToday AND e.date < :endOfToday AND e.country = :country ORDER BY e.date DESC")
+    Page<Event> findTodaysEventsByCountry(@Param("startOfToday") LocalDateTime startOfToday, @Param("endOfToday") LocalDateTime endOfToday, @Param("country") String country, Pageable pageable);
+
+    /**
+     * Find today's events by type and country
+     */
+    @Query("SELECT e FROM Event e WHERE e.date >= :startOfToday AND e.date < :endOfToday AND e.type = :type AND e.country = :country ORDER BY e.date DESC")
+    Page<Event> findTodaysEventsByTypeAndCountry(@Param("startOfToday") LocalDateTime startOfToday, @Param("endOfToday") LocalDateTime endOfToday, @Param("type") String type, @Param("country") String country, Pageable pageable);
 }

@@ -66,6 +66,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/countries/**").permitAll()
                 .requestMatchers("/api/languages/**").permitAll()
                 .requestMatchers("/api/event-types/**").permitAll()
+                .requestMatchers("/api/events/**").permitAll()
                 .requestMatchers("/swagger-ui/**").permitAll()
                 .requestMatchers("/swagger-ui.html").permitAll()
                 .requestMatchers("/v3/api-docs/**").permitAll()

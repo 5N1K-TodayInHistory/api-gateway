@@ -1,215 +1,213 @@
 package com.ehocam.api_gateway.service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.ehocam.api_gateway.dto.EventDto;
 import com.ehocam.api_gateway.entity.Event;
-import com.ehocam.api_gateway.entity.User;
+import com.ehocam.api_gateway.entity.EventLike;
+import com.ehocam.api_gateway.entity.EventReference;
+import com.ehocam.api_gateway.repository.EventLikeRepository;
+import com.ehocam.api_gateway.repository.EventReferenceRepository;
 import com.ehocam.api_gateway.repository.EventRepository;
 
 @Service
+@Transactional
 public class EventService {
 
     @Autowired
     private EventRepository eventRepository;
 
     @Autowired
-    private AuthService authService;
+    private EventLikeRepository eventLikeRepository;
+
+    @Autowired
+    private EventReferenceRepository eventReferenceRepository;
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     /**
-     * Get events based on user's language preference
-     * @param username Username
-     * @param page Page number
-     * @param size Page size
-     * @return Events filtered by user's language
+     * Get today's events with pagination and filters
      */
-    public Page<EventDto.Response> getEventsForUser(String username, int page, int size) {
-        // Get user and their language preference
-        User user = authService.getUserByUsername(username);
-        String userLanguage = getUserLanguage(user);
+    @Transactional(readOnly = true)
+    public Page<EventDto.Response> getTodaysEvents(String language, String type, String country, 
+                                                   int page, int size, String sort, Long userId) {
+        Pageable pageable = PageRequest.of(page, size);
         
-        // Get events sorted by date
-        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
-        Page<Event> events = eventRepository.findAll(pageable);
+        // Get today's date range
+        LocalDateTime startOfToday = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime endOfToday = startOfToday.plusDays(1);
         
-        // Convert events to user's language
-        return events.map(event -> convertToResponseForLanguage(event, userLanguage));
-    }
+        Page<Event> events;
 
-    /**
-     * Get events within a date range based on user's language preference
-     * @param username Username
-     * @param startDate Start date
-     * @param endDate End date
-     * @param page Page number
-     * @param size Page size
-     * @return Filtered events
-     */
-    public Page<EventDto.Response> getEventsForUserByDateRange(
-            String username, 
-            LocalDateTime startDate, 
-            LocalDateTime endDate, 
-            int page, 
-            int size) {
-        
-        User user = authService.getUserByUsername(username);
-        String userLanguage = getUserLanguage(user);
-        
-        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
-        Page<Event> events = eventRepository.findByDateBetween(startDate, endDate, pageable);
-        
-        return events.map(event -> convertToResponseForLanguage(event, userLanguage));
-    }
-
-    /**
-     * Get events for a specific date (e.g., January 1st)
-     * @param username Username
-     * @param targetDate Target date
-     * @param page Page number
-     * @param size Page size
-     * @return Events for the specific date
-     */
-    public Page<EventDto.Response> getEventsForUserByDate(
-            String username, 
-            LocalDateTime targetDate, 
-            int page, 
-            int size) {
-        
-        User user = authService.getUserByUsername(username);
-        String userLanguage = getUserLanguage(user);
-        
-        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
-        Page<Event> events = eventRepository.findByDate(targetDate, pageable);
-        
-        return events.map(event -> convertToResponseForLanguage(event, userLanguage));
-    }
-
-    /**
-     * Convert event to Response DTO based on user's language
-     * @param event Event entity
-     * @param userLanguage User's language preference
-     * @return Converted EventDto.Response
-     */
-    private EventDto.Response convertToResponseForLanguage(Event event, String userLanguage) {
-        EventDto.Response response = new EventDto.Response();
-        response.setId(event.getId());
-        response.setDate(event.getDate());
-        response.setCategory(event.getCategory());
-        response.setCountry(event.getCountry());
-        response.setRatio(event.getRatio());
-        response.setCreatedAt(event.getCreatedAt());
-        response.setUpdatedAt(event.getUpdatedAt());
-
-        // Set content based on user's language
-        setLocalizedContent(event, response, userLanguage);
-        
-        // Set media based on user's language
-        setLocalizedMedia(event, response, userLanguage);
-        
-        // Set engagement information
-        setEngagement(event, response);
-
-        return response;
-    }
-
-    /**
-     * Set event content based on user's language
-     * @param event Event entity
-     * @param response Response DTO
-     * @param userLanguage User's language preference
-     */
-    private void setLocalizedContent(Event event, EventDto.Response response, String userLanguage) {
-        // First check i18n content
-        if (event.getI18n() != null && event.getI18n().containsKey(userLanguage)) {
-            Event.I18nContent i18nContent = event.getI18n().get(userLanguage);
-            response.setTitle(i18nContent.getTitle());
-            response.setSummary(i18nContent.getSummary());
-            response.setContent(i18nContent.getContent());
+        if (type != null && country != null) {
+            events = eventRepository.findTodaysEventsByTypeAndCountry(startOfToday, endOfToday, type, country, pageable);
+        } else if (type != null) {
+            events = eventRepository.findTodaysEventsByType(startOfToday, endOfToday, type, pageable);
+        } else if (country != null) {
+            events = eventRepository.findTodaysEventsByCountry(startOfToday, endOfToday, country, pageable);
         } else {
-            // Fallback: Default language (English) or original content
-            String fallbackLanguage = "en";
-            if (event.getI18n() != null && event.getI18n().containsKey(fallbackLanguage)) {
-                Event.I18nContent fallbackContent = event.getI18n().get(fallbackLanguage);
-                response.setTitle(fallbackContent.getTitle());
-                response.setSummary(fallbackContent.getSummary());
-                response.setContent(fallbackContent.getContent());
-            } else {
-                // Final fallback: Original content
-                response.setTitle(event.getTitle());
-                response.setSummary(event.getSummary());
-                response.setContent(event.getContent());
-            }
+            events = eventRepository.findTodaysEvents(startOfToday, endOfToday, pageable);
         }
+
+        return events.map(event -> convertToResponse(event, language, userId));
     }
 
     /**
-     * Set media based on user's language
-     * @param event Event entity
-     * @param response Response DTO
-     * @param userLanguage User's language preference
+     * Get events by date with pagination and filters
      */
-    private void setLocalizedMedia(Event event, EventDto.Response response, String userLanguage) {
-        if (event.getMedia() != null) {
-            EventDto.MediaDto mediaDto = new EventDto.MediaDto();
-            mediaDto.setThumbnailUrl(event.getMedia().getThumbnailUrl());
-            mediaDto.setBannerUrl(event.getMedia().getBannerUrl());
-            mediaDto.setYoutubeId(event.getMedia().getYoutubeId());
-            
-            // Set audio file based on language
-            if (event.getMedia().getI18n() != null && 
-                event.getMedia().getI18n().containsKey(userLanguage)) {
-                Event.MediaI18n mediaI18n = event.getMedia().getI18n().get(userLanguage);
-                mediaDto.setAudioUrl(mediaI18n.getAudioUrl());
-            } else {
-                // Fallback: Default audio file
-                String fallbackLanguage = "en";
-                if (event.getMedia().getI18n() != null && 
-                    event.getMedia().getI18n().containsKey(fallbackLanguage)) {
-                    Event.MediaI18n fallbackMedia = event.getMedia().getI18n().get(fallbackLanguage);
-                    mediaDto.setAudioUrl(fallbackMedia.getAudioUrl());
-                } else {
-                    // Final fallback: Original audio file
-                    mediaDto.setAudioUrl(event.getMedia().getAudioUrl());
-                }
-            }
-            
-            response.setMedia(mediaDto);
-        }
+    @Transactional(readOnly = true)
+    public Page<EventDto.Response> getEventsByDate(LocalDateTime date, String language, String type, 
+                                                   String country, int page, int size, String sort, Long userId) {
+        Pageable pageable = PageRequest.of(page, size);
+        
+        // Get date range for the specific date
+        LocalDateTime startOfDay = date.withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime endOfDay = startOfDay.plusDays(1);
+        
+        Page<Event> events = eventRepository.findByDate(startOfDay, endOfDay, pageable);
+        return events.map(event -> convertToResponse(event, language, userId));
     }
 
     /**
-     * Set engagement information
-     * @param event Event entity
-     * @param response Response DTO
+     * Get events by date range with pagination and filters
      */
-    private void setEngagement(Event event, EventDto.Response response) {
-        if (event.getEngagement() != null) {
-            EventDto.EngagementDto engagementDto = new EventDto.EngagementDto();
-            engagementDto.setLikes(event.getEngagement().getLikes());
-            engagementDto.setComments(event.getEngagement().getComments());
-            engagementDto.setShares(event.getEngagement().getShares());
-            response.setEngagement(engagementDto);
-        }
+    @Transactional(readOnly = true)
+    public Page<EventDto.Response> getEventsByDateRange(LocalDateTime startDate, LocalDateTime endDate, 
+                                                        String language, String type, String country, 
+                                                        int page, int size, String sort, Long userId) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Event> events = eventRepository.findByDateBetween(startDate, endDate, pageable);
+        return events.map(event -> convertToResponse(event, language, userId));
     }
 
     /**
-     * Get user's language preference
-     * @param user User
-     * @return Language code (e.g., "tr", "en")
+     * Get a single event by ID
      */
-    private String getUserLanguage(User user) {
-        if (user.getPreferences() != null && 
-            user.getPreferences().getLanguage() != null && 
-            !user.getPreferences().getLanguage().isEmpty()) {
-            return user.getPreferences().getLanguage();
+    @Transactional(readOnly = true)
+    public Optional<EventDto.Response> getEventById(Long id, String language, Long userId) {
+        return eventRepository.findById(id)
+                .map(event -> convertToResponse(event, language, userId));
+    }
+
+    /**
+     * Like an event
+     */
+    @Transactional
+    public EventDto.LikeResponse likeEvent(Long eventId, Long userId) {
+        // Check if already liked
+        if (eventLikeRepository.existsByEventIdAndUserId(eventId, userId)) {
+            return new EventDto.LikeResponse(false, false, 0);
         }
-        return "en"; // Default language
+
+        // Get event
+        Optional<Event> eventOpt = eventRepository.findById(eventId);
+        if (eventOpt.isEmpty()) {
+            return new EventDto.LikeResponse(false, false, 0);
+        }
+
+        Event event = eventOpt.get();
+
+        // Create like
+        EventLike like = new EventLike(event, userId);
+        eventLikeRepository.save(like);
+
+        // Update likes count
+        event.setLikesCount(event.getLikesCount() + 1);
+        eventRepository.save(event);
+
+        return new EventDto.LikeResponse(true, true, event.getLikesCount());
+    }
+
+    /**
+     * Unlike an event
+     */
+    @Transactional
+    public EventDto.LikeResponse unlikeEvent(Long eventId, Long userId) {
+        // Check if liked
+        if (!eventLikeRepository.existsByEventIdAndUserId(eventId, userId)) {
+            return new EventDto.LikeResponse(false, false, 0);
+        }
+
+        // Get event
+        Optional<Event> eventOpt = eventRepository.findById(eventId);
+        if (eventOpt.isEmpty()) {
+            return new EventDto.LikeResponse(false, false, 0);
+        }
+
+        Event event = eventOpt.get();
+
+        // Remove like
+        eventLikeRepository.deleteByEventIdAndUserId(eventId, userId);
+
+        // Update likes count
+        event.setLikesCount(Math.max(0, event.getLikesCount() - 1));
+        eventRepository.save(event);
+
+        return new EventDto.LikeResponse(true, false, event.getLikesCount());
+    }
+
+    /**
+     * Check if user has liked an event
+     */
+    @Transactional(readOnly = true)
+    public boolean isEventLikedByUser(Long eventId, Long userId) {
+        if (userId == null) {
+            return false;
+        }
+        return eventLikeRepository.existsByEventIdAndUserId(eventId, userId);
+    }
+
+    /**
+     * Convert Event entity to EventDto.Response
+     */
+    private EventDto.Response convertToResponse(Event event, String language, Long userId) {
+        // Get multilingual content
+        String title = event.getTitleForLanguage(language);
+        if (title == null) {
+            title = event.getDefaultTitle();
+        }
+
+        String description = event.getDescriptionForLanguage(language);
+        if (description == null) {
+            description = event.getDefaultDescription();
+        }
+
+        String content = event.getContentForLanguage(language);
+        if (content == null) {
+            content = event.getDefaultContent();
+        }
+
+        // Get references
+        List<EventReference> references = eventReferenceRepository.findByEventIdOrderByCreatedAtAsc(event.getId());
+        List<EventDto.ReferenceDto> referenceDtos = references.stream()
+                .map(ref -> new EventDto.ReferenceDto(ref.getTitle(), ref.getUrl()))
+                .collect(Collectors.toList());
+
+        return new EventDto.Response(
+                event.getId().toString(),
+                title,
+                description,
+                content,
+                event.getDate().format(DATE_FORMATTER),
+                event.getType(),
+                event.getCountry(),
+                event.getImageUrl(),
+                event.getVideoUrls(),
+                event.getAudioUrls(),
+                referenceDtos,
+                event.getLikesCount(),
+                event.getCommentsCount()
+        );
     }
 }

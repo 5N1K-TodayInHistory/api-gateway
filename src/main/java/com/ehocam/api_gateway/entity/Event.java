@@ -1,6 +1,7 @@
 package com.ehocam.api_gateway.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -8,22 +9,28 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "events", indexes = {
-    @Index(name = "idx_events_date_country_category", columnList = "date DESC, country, category"),
-    @Index(name = "idx_events_created_at", columnList = "createdAt DESC")
+    @Index(name = "idx_events_date", columnList = "date DESC"),
+    @Index(name = "idx_events_type", columnList = "type"),
+    @Index(name = "idx_events_country", columnList = "country"),
+    @Index(name = "idx_events_date_type_country", columnList = "date DESC, type, country"),
+    @Index(name = "idx_events_likes_count", columnList = "likes_count DESC"),
+    @Index(name = "idx_events_created_at", columnList = "created_at DESC")
 })
 public class Event {
 
@@ -31,42 +38,52 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Column(nullable = false)
-    private String title;
+    @NotNull
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(nullable = false, columnDefinition = "jsonb")
+    private Map<String, String> title; // Multilingual titles: {"en": "Title", "tr": "Başlık"}
 
-    @NotBlank
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String summary;
+    @NotNull
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(nullable = false, columnDefinition = "jsonb")
+    private Map<String, String> description; // Multilingual descriptions
 
-    @NotBlank
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
+    @NotNull
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(nullable = false, columnDefinition = "jsonb")
+    private Map<String, String> content; // Multilingual content
 
     @NotNull
     @Column(nullable = false)
     private LocalDateTime date;
 
-    @Enumerated(EnumType.STRING)
-    @NotNull
-    @Column(nullable = false)
-    private Category category;
+    @NotBlank
+    @Size(max = 20)
+    @Column(nullable = false, length = 20)
+    private String type; // Event type code (politics, science, sports, etc.)
 
-    @Enumerated(EnumType.STRING)
-    @NotNull
-    @Column(nullable = false)
-    private Country country;
+    @NotBlank
+    @Size(max = 3)
+    @Column(nullable = false, length = 3)
+    private String country; // Country code (TR, US, ALL, etc.)
 
-    @Column(name = "ratio", nullable = false)
-    private Integer ratio = 50; // Default importance value (1-100)
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "media", columnDefinition = "jsonb")
-    private Media media;
+    @Size(max = 500)
+    @Column(name = "image_url", length = 500)
+    private String imageUrl; // Main image URL
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "engagement", columnDefinition = "jsonb")
-    private Engagement engagement;
+    @Column(name = "video_urls", columnDefinition = "jsonb")
+    private List<String> videoUrls; // Array of video URLs
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "audio_urls", columnDefinition = "jsonb")
+    private List<String> audioUrls; // Array of audio URLs
+
+    @Column(name = "likes_count", nullable = false)
+    private Integer likesCount = 0;
+
+    @Column(name = "comments_count", nullable = false)
+    private Integer commentsCount = 0;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -76,21 +93,24 @@ public class Event {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "i18n", columnDefinition = "jsonb")
-    private Map<String, I18nContent> i18n;
+    // Relationships
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<EventLike> likes;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<EventReference> references;
 
     // Constructors
     public Event() {}
 
-    public Event(String title, String summary, String content, LocalDateTime date, Category category, Country country) {
+    public Event(Map<String, String> title, Map<String, String> description, Map<String, String> content,
+                 LocalDateTime date, String type, String country) {
         this.title = title;
-        this.summary = summary;
+        this.description = description;
         this.content = content;
         this.date = date;
-        this.category = category;
+        this.type = type;
         this.country = country;
-        this.engagement = new Engagement();
     }
 
     // Getters and Setters
@@ -102,27 +122,27 @@ public class Event {
         this.id = id;
     }
 
-    public String getTitle() {
+    public Map<String, String> getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(Map<String, String> title) {
         this.title = title;
     }
 
-    public String getSummary() {
-        return summary;
+    public Map<String, String> getDescription() {
+        return description;
     }
 
-    public void setSummary(String summary) {
-        this.summary = summary;
+    public void setDescription(Map<String, String> description) {
+        this.description = description;
     }
 
-    public String getContent() {
+    public Map<String, String> getContent() {
         return content;
     }
 
-    public void setContent(String content) {
+    public void setContent(Map<String, String> content) {
         this.content = content;
     }
 
@@ -134,44 +154,60 @@ public class Event {
         this.date = date;
     }
 
-    public Category getCategory() {
-        return category;
+    public String getType() {
+        return type;
     }
 
-    public void setCategory(Category category) {
-        this.category = category;
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public Country getCountry() {
+    public String getCountry() {
         return country;
     }
 
-    public void setCountry(Country country) {
+    public void setCountry(String country) {
         this.country = country;
     }
 
-    public Integer getRatio() {
-        return ratio;
+    public String getImageUrl() {
+        return imageUrl;
     }
 
-    public void setRatio(Integer ratio) {
-        this.ratio = ratio;
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
-    public Media getMedia() {
-        return media;
+    public List<String> getVideoUrls() {
+        return videoUrls;
     }
 
-    public void setMedia(Media media) {
-        this.media = media;
+    public void setVideoUrls(List<String> videoUrls) {
+        this.videoUrls = videoUrls;
     }
 
-    public Engagement getEngagement() {
-        return engagement;
+    public List<String> getAudioUrls() {
+        return audioUrls;
     }
 
-    public void setEngagement(Engagement engagement) {
-        this.engagement = engagement;
+    public void setAudioUrls(List<String> audioUrls) {
+        this.audioUrls = audioUrls;
+    }
+
+    public Integer getLikesCount() {
+        return likesCount;
+    }
+
+    public void setLikesCount(Integer likesCount) {
+        this.likesCount = likesCount;
+    }
+
+    public Integer getCommentsCount() {
+        return commentsCount;
+    }
+
+    public void setCommentsCount(Integer commentsCount) {
+        this.commentsCount = commentsCount;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -190,101 +226,82 @@ public class Event {
         this.updatedAt = updatedAt;
     }
 
-    public Map<String, I18nContent> getI18n() {
-        return i18n;
+    public List<EventLike> getLikes() {
+        return likes;
     }
 
-    public void setI18n(Map<String, I18nContent> i18n) {
-        this.i18n = i18n;
+    public void setLikes(List<EventLike> likes) {
+        this.likes = likes;
     }
 
-    // Enums
-    public enum Category {
-        SCIENCE, POLITICS, SPORTS, HISTORY, ENTERTAINMENT, TECHNOLOGY, HEALTH, BUSINESS, WORLD, LOCAL
+    public List<EventReference> getReferences() {
+        return references;
     }
 
-    public enum Country {
-        TR, US, GB, DE, FR, ES, IT, RU, CN, JP, BR, IN, AU, CA, MX, AR, CL, CO, PE, VE, EG, ZA, NG, KE, MA, TN, DZ, LY, SD, ET, GH, CI, SN, ML, BF, NE, TD, CM, CF, CG, CD, AO, ZM, ZW, BW, NA, SZ, LS, MG, MU, SC, KM, DJ, SO, ER, SS, ALL
+    public void setReferences(List<EventReference> references) {
+        this.references = references;
     }
 
-    // Nested classes for JSONB
-    public static class Media {
-        private String thumbnailUrl;
-        private String bannerUrl;
-        private String youtubeId;
-        private String audioUrl;
-        private Map<String, MediaI18n> i18n; // Language-based media files
-
-        public Media() {}
-
-        // Getters and Setters
-        public String getThumbnailUrl() { return thumbnailUrl; }
-        public void setThumbnailUrl(String thumbnailUrl) { this.thumbnailUrl = thumbnailUrl; }
-        public String getBannerUrl() { return bannerUrl; }
-        public void setBannerUrl(String bannerUrl) { this.bannerUrl = bannerUrl; }
-        public String getYoutubeId() { return youtubeId; }
-        public void setYoutubeId(String youtubeId) { this.youtubeId = youtubeId; }
-        public String getAudioUrl() { return audioUrl; }
-        public void setAudioUrl(String audioUrl) { this.audioUrl = audioUrl; }
-        public Map<String, MediaI18n> getI18n() { return i18n; }
-        public void setI18n(Map<String, MediaI18n> i18n) { this.i18n = i18n; }
-    }
-
-    public static class MediaI18n {
-        private String audioUrl; // Language-based audio file
-        private String thumbnailUrl; // Language-based thumbnail (optional)
-        private String bannerUrl; // Language-based banner (optional)
-
-        public MediaI18n() {}
-
-        public MediaI18n(String audioUrl) {
-            this.audioUrl = audioUrl;
+    // Helper methods for multilingual content
+    public String getTitleForLanguage(String languageCode) {
+        if (title == null) {
+            return null;
         }
-
-        // Getters and Setters
-        public String getAudioUrl() { return audioUrl; }
-        public void setAudioUrl(String audioUrl) { this.audioUrl = audioUrl; }
-        public String getThumbnailUrl() { return thumbnailUrl; }
-        public void setThumbnailUrl(String thumbnailUrl) { this.thumbnailUrl = thumbnailUrl; }
-        public String getBannerUrl() { return bannerUrl; }
-        public void setBannerUrl(String bannerUrl) { this.bannerUrl = bannerUrl; }
+        return title.get(languageCode);
     }
 
-    public static class Engagement {
-        private long likes = 0;
-        private long comments = 0;
-        private long shares = 0;
-
-        public Engagement() {}
-
-        // Getters and Setters
-        public long getLikes() { return likes; }
-        public void setLikes(long likes) { this.likes = likes; }
-        public long getComments() { return comments; }
-        public void setComments(long comments) { this.comments = comments; }
-        public long getShares() { return shares; }
-        public void setShares(long shares) { this.shares = shares; }
-    }
-
-    public static class I18nContent {
-        private String title;
-        private String summary;
-        private String content;
-
-        public I18nContent() {}
-
-        public I18nContent(String title, String summary, String content) {
-            this.title = title;
-            this.summary = summary;
-            this.content = content;
+    public String getDescriptionForLanguage(String languageCode) {
+        if (description == null) {
+            return null;
         }
+        return description.get(languageCode);
+    }
 
-        // Getters and Setters
-        public String getTitle() { return title; }
-        public void setTitle(String title) { this.title = title; }
-        public String getSummary() { return summary; }
-        public void setSummary(String summary) { this.summary = summary; }
-        public String getContent() { return content; }
-        public void setContent(String content) { this.content = content; }
+    public String getContentForLanguage(String languageCode) {
+        if (content == null) {
+            return null;
+        }
+        return content.get(languageCode);
+    }
+
+    public String getDefaultTitle() {
+        if (title == null) {
+            return null;
+        }
+        return title.get("en");
+    }
+
+    public String getDefaultDescription() {
+        if (description == null) {
+            return null;
+        }
+        return description.get("en");
+    }
+
+    public String getDefaultContent() {
+        if (content == null) {
+            return null;
+        }
+        return content.get("en");
+    }
+
+    @Override
+    public String toString() {
+        return "Event{" +
+                "id=" + id +
+                ", title=" + title +
+                ", description=" + description +
+                ", content=" + content +
+                ", date=" + date +
+                ", type='" + type + '\'' +
+                ", country='" + country + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
+                ", videoUrls=" + videoUrls +
+                ", audioUrls=" + audioUrls +
+                ", likesCount=" + likesCount +
+                ", commentsCount=" + commentsCount +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 }
