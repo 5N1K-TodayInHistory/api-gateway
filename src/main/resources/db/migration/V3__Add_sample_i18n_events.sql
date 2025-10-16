@@ -3,7 +3,7 @@
 -- =====================================================
 
 -- Insert sample events with Turkish and English content
-INSERT INTO events (title, summary, content, date, category, country, ratio, media, engagement, i18n) VALUES
+INSERT INTO events (title, summary, content, date, category, country, media, engagement, i18n) VALUES
 (
     'New Year Celebration',
     'Global New Year celebrations',
@@ -11,7 +11,6 @@ INSERT INTO events (title, summary, content, date, category, country, ratio, med
     '2024-01-01 00:00:00+00',
     'HISTORY',
     'ALL',
-    90,
     '{
         "thumbnailUrl": "https://example.com/new-year-thumb.jpg",
         "bannerUrl": "https://example.com/new-year-banner.jpg",
@@ -47,7 +46,6 @@ INSERT INTO events (title, summary, content, date, category, country, ratio, med
     '2024-01-15 10:00:00+00',
     'SCIENCE',
     'US',
-    85,
     '{
         "thumbnailUrl": "https://example.com/science-thumb.jpg",
         "bannerUrl": "https://example.com/science-banner.jpg",
@@ -83,7 +81,6 @@ INSERT INTO events (title, summary, content, date, category, country, ratio, med
     '2024-02-01 15:00:00+00',
     'SPORTS',
     'TR',
-    80,
     '{
         "thumbnailUrl": "https://example.com/sports-thumb.jpg",
         "bannerUrl": "https://example.com/sports-banner.jpg",

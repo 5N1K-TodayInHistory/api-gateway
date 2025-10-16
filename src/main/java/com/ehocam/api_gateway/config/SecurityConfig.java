@@ -62,10 +62,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 // Public endpoints
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/events").permitAll()
-                .requestMatchers("/api/events/{id}").permitAll()
                 .requestMatchers("/api/categories").permitAll()
-                .requestMatchers("/api/countries").permitAll()
+                .requestMatchers("/api/countries/**").permitAll()
                 .requestMatchers("/swagger-ui/**").permitAll()
                 .requestMatchers("/swagger-ui.html").permitAll()
                 .requestMatchers("/v3/api-docs/**").permitAll()
@@ -73,16 +71,10 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 
-                // Admin endpoints
-                .requestMatchers("/api/events", "POST").hasRole("ADMIN")
-                .requestMatchers("/api/events/{id}", "PUT").hasRole("ADMIN")
-                .requestMatchers("/api/events/{id}", "DELETE").hasRole("ADMIN")
-                
                 // Authenticated endpoints
                 .requestMatchers("/api/events/{id}/like").authenticated()
                 .requestMatchers("/api/events/{id}/comments").authenticated()
                 .requestMatchers("/api/events/{id}/share").authenticated()
-                .requestMatchers("/api/user/**").authenticated()
                 .requestMatchers("/api/ws/**").authenticated()
                 
                 // All other requests need authentication

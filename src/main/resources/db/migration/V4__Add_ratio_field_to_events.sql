@@ -9,6 +9,7 @@ ALTER TABLE events ADD COLUMN ratio INTEGER NOT NULL DEFAULT 50;
 CREATE INDEX idx_events_ratio ON events(ratio DESC);
 
 -- Update existing events with different importance values based on category and country
+-- Only update if there are existing events
 UPDATE events 
 SET ratio = CASE 
     WHEN category = 'HISTORY' AND country = 'ALL' THEN 90
@@ -20,7 +21,8 @@ SET ratio = CASE
     WHEN category = 'BUSINESS' THEN 60
     WHEN category = 'ENTERTAINMENT' THEN 55
     ELSE 50
-END;
+END
+WHERE id IS NOT NULL;
 
 -- Update the composite index to include ratio for better performance
 DROP INDEX IF EXISTS idx_events_date_country_category;
