@@ -1,0 +1,47 @@
+package com.ehocam.api_gateway.service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ehocam.api_gateway.dto.LanguageDto;
+import com.ehocam.api_gateway.entity.Language;
+import com.ehocam.api_gateway.repository.LanguageRepository;
+
+@Service
+@Transactional
+public class LanguageService {
+
+    @Autowired
+    private LanguageRepository languageRepository;
+
+    /**
+     * Get all languages with names in specified language
+     */
+    @Transactional(readOnly = true)
+    public List<LanguageDto.Response> getAllLanguages(String language) {
+        List<Language> languages = languageRepository.findAllByOrderByCodeAsc();
+        return languages.stream()
+                .map(lang -> convertToResponse(lang, language))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Convert Language entity to Response DTO with specific language
+     */
+    private LanguageDto.Response convertToResponse(Language language, String languageCode) {
+        String name = language.getNameForLanguage(languageCode);
+        if (name == null) {
+            // Fallback to default name if requested language not available
+            name = language.getDefaultName();
+        }
+        
+        return new LanguageDto.Response(
+                language.getCode(),
+                name
+        );
+    }
+}
