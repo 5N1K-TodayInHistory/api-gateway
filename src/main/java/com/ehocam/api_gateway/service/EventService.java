@@ -57,12 +57,12 @@ public class EventService {
      * Get events for a specific day (today, yesterday, tomorrow) with pagination and filters
      */
     @Transactional(readOnly = true)
-    public Page<EventDto.Response> getEventsForDay(int dayOffset, String language, String type, String country, 
-                                                   int page, int size, String sort, Long userId) {
+    public Page<EventDto.Response> getEventsForDay(int dayOffset, String type, String country, 
+                                                   int page, int size, String sort, Long userId, String language) {
         Pageable pageable = PageRequest.of(page, size);
         
-        // Get user's preferred language
-        String userLanguage = getUserLanguage(userId, language);
+        // Use provided language parameter, fallback to user's preferred language
+        String userLanguage = language != null ? language : getUserLanguage(userId, "en");
         
         // Get date range for the specified day
         LocalDateTime startOfDay = LocalDateTime.now()
@@ -91,7 +91,7 @@ public class EventService {
     @Transactional(readOnly = true)
     public Page<EventDto.Response> getTodaysEvents(String language, String type, String country, 
                                                    int page, int size, String sort, Long userId) {
-        return getEventsForDay(0, language, type, country, page, size, sort, userId);
+        return getEventsForDay(0, type, country, page, size, sort, userId, language);
     }
 
     /**

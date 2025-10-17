@@ -51,7 +51,7 @@ public class EventController {
             @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "20") int size,
             @Parameter(description = "Sort order") @RequestParam(value = "sort", defaultValue = "DATE_DESC") String sort) {
         
-        return getEventsForDay(0, language, type, country, page, size, sort);
+        return getEventsForDay(0, type, country, page, size, sort, language);
     }
 
     /**
@@ -72,7 +72,7 @@ public class EventController {
             @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "20") int size,
             @Parameter(description = "Sort order") @RequestParam(value = "sort", defaultValue = "DATE_DESC") String sort) {
         
-        return getEventsForDay(1, language, type, country, page, size, sort);
+        return getEventsForDay(1, type, country, page, size, sort, language);
     }
 
     /**
@@ -93,7 +93,7 @@ public class EventController {
             @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "20") int size,
             @Parameter(description = "Sort order") @RequestParam(value = "sort", defaultValue = "DATE_DESC") String sort) {
         
-        return getEventsForDay(-1, language, type, country, page, size, sort);
+        return getEventsForDay(-1, type, country, page, size, sort, language);
     }
 
     /**
@@ -119,9 +119,9 @@ public class EventController {
     /**
      * Common method to get events for a specific day
      */
-    private ResponseEntity<ApiResponse<Page<EventDto.Response>>> getEventsForDay(int dayOffset, String language, String type, String country, int page, int size, String sort) {
+    private ResponseEntity<ApiResponse<Page<EventDto.Response>>> getEventsForDay(int dayOffset, String type, String country, int page, int size, String sort, String language) {
         Long userId = getCurrentUserId();
-        Page<EventDto.Response> events = eventService.getEventsForDay(dayOffset, language, type, country, page, size, sort, userId);
+        Page<EventDto.Response> events = eventService.getEventsForDay(dayOffset, type, country, page, size, sort, userId, language);
         return ResponseEntity.ok(ApiResponse.success(events));
     }
 

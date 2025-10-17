@@ -58,7 +58,8 @@ public class AuthService {
     }
 
     public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
+        // JWT token contains email, so we need to search by email
+        return userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
     }
 
