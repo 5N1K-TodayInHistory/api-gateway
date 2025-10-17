@@ -40,7 +40,9 @@ public class EventController {
     @Operation(summary = "Get today's events", description = "Retrieve today's events with pagination and filters")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved events",
                        content = @Content(mediaType = "application/json", 
-                                        schema = @Schema(implementation = EventDto.Response.class)))
+                                        schema = @Schema(implementation = ApiResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad request")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
     public ResponseEntity<ApiResponse<Page<EventDto.Response>>> getTodaysEvents(
             @Parameter(description = "Language code for multilingual content") @RequestParam(value = "lang", defaultValue = "en") String language,
             @Parameter(description = "Event type filter") @RequestParam(value = "type", required = false) String type,
@@ -59,6 +61,11 @@ public class EventController {
      */
     @GetMapping("/by-date")
     @Operation(summary = "Get events by date", description = "Retrieve events for a specific date")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved events",
+                       content = @Content(mediaType = "application/json", 
+                                        schema = @Schema(implementation = ApiResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad request")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
     public ResponseEntity<ApiResponse<Page<EventDto.Response>>> getEventsByDate(
             @Parameter(description = "Date (yyyy-MM-dd)") @RequestParam String date,
             @Parameter(description = "Language code for multilingual content") @RequestParam(value = "lang", defaultValue = "en") String language,
@@ -79,6 +86,11 @@ public class EventController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "Get event by ID", description = "Retrieve a specific event by its ID")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved event",
+                       content = @Content(mediaType = "application/json", 
+                                        schema = @Schema(implementation = ApiResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Event not found")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
     public ResponseEntity<ApiResponse<EventDto.Response>> getEventById(
             @Parameter(description = "Event ID") @PathVariable Long id,
             @Parameter(description = "Language code for multilingual content") @RequestParam(value = "lang", defaultValue = "en") String language) {

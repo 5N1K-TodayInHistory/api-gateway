@@ -18,6 +18,8 @@ import com.ehocam.api_gateway.service.EventService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -33,6 +35,11 @@ public class LikeController {
      */
     @PostMapping("/{eventId}/like")
     @Operation(summary = "Like an event", description = "Add a like to an event")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully liked event",
+                       content = @Content(mediaType = "application/json", 
+                                        schema = @Schema(implementation = ApiResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad request")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized")
     public ResponseEntity<ApiResponse<EventDto.LikeResponse>> likeEvent(
             @Parameter(description = "Event ID to like") @PathVariable Long eventId) {
         
@@ -54,6 +61,11 @@ public class LikeController {
      */
     @DeleteMapping("/{eventId}/like")
     @Operation(summary = "Unlike an event", description = "Remove a like from an event")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully unliked event",
+                       content = @Content(mediaType = "application/json", 
+                                        schema = @Schema(implementation = ApiResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad request")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized")
     public ResponseEntity<ApiResponse<EventDto.LikeResponse>> unlikeEvent(
             @Parameter(description = "Event ID to unlike") @PathVariable Long eventId) {
         

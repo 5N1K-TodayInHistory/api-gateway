@@ -47,6 +47,11 @@ public class AuthController {
 
     @PostMapping("/oauth/google")
     @Operation(summary = "Google OAuth2 login", description = "Authenticate with Google ID token and get JWT tokens")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully authenticated",
+                       content = @Content(mediaType = "application/json", 
+                                        schema = @Schema(implementation = ApiResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad request")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
     public ResponseEntity<ApiResponse<AuthResponse>> googleOAuth2Login(
             @Valid @RequestBody AuthDto.GoogleOAuthRequest request,
             HttpServletRequest httpRequest) {
@@ -94,6 +99,11 @@ public class AuthController {
 
     @PostMapping("/refresh")
     @Operation(summary = "Refresh token", description = "Exchange refresh token for new access token with rotation")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully refreshed token",
+                       content = @Content(mediaType = "application/json", 
+                                        schema = @Schema(implementation = ApiResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden")
     public ResponseEntity<ApiResponse<AuthTokens>> refreshToken(
             @Valid @RequestBody AuthDto.RefreshRequest request,
             HttpServletRequest httpRequest) {
@@ -188,6 +198,10 @@ public class AuthController {
 
     @PostMapping("/logout")
     @Operation(summary = "Logout", description = "Logout current user (invalidate refresh token)")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully logged out",
+                       content = @Content(mediaType = "application/json", 
+                                        schema = @Schema(implementation = ApiResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized")
     public ResponseEntity<ApiResponse<String>> logout(
             @RequestBody(required = false) Map<String, Boolean> request) {
 
@@ -255,6 +269,11 @@ public class AuthController {
 
     @PostMapping("/validate")
     @Operation(summary = "Validate token", description = "Check if the provided Bearer token is valid with database cross-check")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Token validation result",
+                       content = @Content(mediaType = "application/json", 
+                                        schema = @Schema(implementation = Map.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
     public ResponseEntity<Map<String, Object>> validateToken(HttpServletRequest request) {
         try {
             String authorizationHeader = request.getHeader("Authorization");

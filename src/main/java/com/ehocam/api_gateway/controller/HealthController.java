@@ -1,5 +1,12 @@
 package com.ehocam.api_gateway.controller;
 
+import java.sql.Connection;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,12 +19,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/health")
@@ -62,10 +63,18 @@ public class HealthController {
     }
 
     // Health status DTO
+    @Schema(description = "System health status information")
     public static class HealthStatus {
+        @Schema(description = "Overall system status", example = "UP", allowableValues = {"UP", "DOWN"})
         private String status;
+        
+        @Schema(description = "Health check timestamp", example = "2025-10-17T11:24:22.206566")
         private String timestamp;
+        
+        @Schema(description = "Database connection status", example = "true")
         private boolean database;
+        
+        @Schema(description = "Additional health details")
         private Map<String, Object> details = new HashMap<>();
 
         // Constructors

@@ -14,6 +14,10 @@ import com.ehocam.api_gateway.dto.ApiResponse;
 import com.ehocam.api_gateway.dto.EventTypeDto;
 import com.ehocam.api_gateway.service.EventTypeService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -29,8 +33,13 @@ public class EventTypeController {
      * GET /api/event-types?lang=tr
      */
     @GetMapping
+    @Operation(summary = "Get all event types", description = "Retrieve all supported event types with multilingual names")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved event types",
+                       content = @Content(mediaType = "application/json", 
+                                        schema = @Schema(implementation = ApiResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
     public ResponseEntity<ApiResponse<List<EventTypeDto.Response>>> getAllEventTypes(
-            @RequestParam(value = "lang", defaultValue = "en") String language) {
+            @Parameter(description = "Language code for multilingual content", example = "en") @RequestParam(value = "lang", defaultValue = "en") String language) {
         try {
             List<EventTypeDto.Response> eventTypes = eventTypeService.getAllEventTypes(language);
             return ResponseEntity.ok(ApiResponse.success(eventTypes));

@@ -14,6 +14,10 @@ import com.ehocam.api_gateway.dto.ApiResponse;
 import com.ehocam.api_gateway.dto.CountryDto;
 import com.ehocam.api_gateway.service.CountryService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -29,8 +33,13 @@ public class CountryController {
      * GET /api/countries?lang=tr
      */
     @GetMapping
+    @Operation(summary = "Get all countries", description = "Retrieve all countries with multilingual names")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved countries",
+                       content = @Content(mediaType = "application/json", 
+                                        schema = @Schema(implementation = ApiResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
     public ResponseEntity<ApiResponse<List<CountryDto.Response>>> getAllCountries(
-            @RequestParam(value = "lang", defaultValue = "en") String language) {
+            @Parameter(description = "Language code for multilingual content", example = "en") @RequestParam(value = "lang", defaultValue = "en") String language) {
         try {
             List<CountryDto.Response> countries = countryService.getAllCountries(language);
             return ResponseEntity.ok(ApiResponse.success(countries));
