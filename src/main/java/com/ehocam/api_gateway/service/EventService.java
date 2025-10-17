@@ -20,6 +20,7 @@ import com.ehocam.api_gateway.entity.EventReference;
 import com.ehocam.api_gateway.repository.EventLikeRepository;
 import com.ehocam.api_gateway.repository.EventReferenceRepository;
 import com.ehocam.api_gateway.repository.EventRepository;
+import com.ehocam.api_gateway.repository.UserRepository;
 
 @Service
 @Transactional
@@ -34,7 +35,23 @@ public class EventService {
     @Autowired
     private EventReferenceRepository eventReferenceRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+    /**
+     * Get user's preferred language or fallback to default
+     */
+    private String getUserLanguage(Long userId, String fallbackLanguage) {
+        if (userId == null) {
+            return fallbackLanguage != null ? fallbackLanguage : "en";
+        }
+        
+        return userRepository.findById(userId)
+                .map(user -> user.getPreferences().getLanguage())
+                .orElse(fallbackLanguage != null ? fallbackLanguage : "en");
+    }
 
     /**
      * Get today's events with pagination and filters
@@ -43,6 +60,9 @@ public class EventService {
     public Page<EventDto.Response> getTodaysEvents(String language, String type, String country, 
                                                    int page, int size, String sort, Long userId) {
         Pageable pageable = PageRequest.of(page, size);
+        
+        // Get user's preferred language
+        String userLanguage = getUserLanguage(userId, language);
         
         // Get today's date range
         LocalDateTime startOfToday = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
@@ -60,7 +80,7 @@ public class EventService {
             events = eventRepository.findTodaysEvents(startOfToday, endOfToday, pageable);
         }
 
-        return events.map(event -> convertToResponse(event, language, userId));
+        return events.map(event -> convertToResponse(event, userLanguage));
     }
 
     /**
@@ -71,12 +91,15 @@ public class EventService {
                                                    String country, int page, int size, String sort, Long userId) {
         Pageable pageable = PageRequest.of(page, size);
         
+        // Get user's preferred language
+        String userLanguage = getUserLanguage(userId, language);
+        
         // Get date range for the specific date
         LocalDateTime startOfDay = date.withHour(0).withMinute(0).withSecond(0).withNano(0);
         LocalDateTime endOfDay = startOfDay.plusDays(1);
         
         Page<Event> events = eventRepository.findByDate(startOfDay, endOfDay, pageable);
-        return events.map(event -> convertToResponse(event, language, userId));
+        return events.map(event -> convertToResponse(event, userLanguage));
     }
 
     /**
@@ -88,17 +111,9 @@ public class EventService {
                                                         int page, int size, String sort, Long userId) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Event> events = eventRepository.findByDateBetween(startDate, endDate, pageable);
-        return events.map(event -> convertToResponse(event, language, userId));
+        return events.map(event -> convertToResponse(event, language));
     }
 
-    /**
-     * Get a single event by ID
-     */
-    @Transactional(readOnly = true)
-    public Optional<EventDto.Response> getEventById(Long id, String language, Long userId) {
-        return eventRepository.findById(id)
-                .map(event -> convertToResponse(event, language, userId));
-    }
 
     /**
      * Like an event
@@ -171,7 +186,7 @@ public class EventService {
     /**
      * Convert Event entity to EventDto.Response
      */
-    private EventDto.Response convertToResponse(Event event, String language, Long userId) {
+    private EventDto.Response convertToResponse(Event event, String language) {
         // Get multilingual content
         String title = event.getTitleForLanguage(language);
         if (title == null) {
@@ -209,5 +224,17 @@ public class EventService {
                 event.getLikesCount(),
                 event.getCommentsCount()
         );
+    }
+
+    /**
+     * Get a single event by ID
+     */
+    @Transactional(readOnly = true)
+    public Optional<EventDto.Response> getEventById(Long eventId, String language, Long userId) {
+        // Get user's preferred language
+        String userLanguage = getUserLanguage(userId, language);
+        
+        return eventRepository.findById(eventId)
+                .map(event -> convertToResponse(event, userLanguage));
     }
 }

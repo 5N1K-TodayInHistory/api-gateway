@@ -2,11 +2,19 @@ package com.ehocam.api_gateway.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Standard API response wrapper")
 public class ApiResponse<T> {
     
+    @Schema(description = "Indicates if the request was successful")
     private boolean success;
+    
+    @Schema(description = "Response data")
     private T data;
+    
+    @Schema(description = "Error message if any")
     private String error;
     
     // Constructors

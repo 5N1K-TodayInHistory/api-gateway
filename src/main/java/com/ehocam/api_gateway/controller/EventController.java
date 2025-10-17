@@ -1,6 +1,5 @@
 package com.ehocam.api_gateway.controller;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +21,8 @@ import com.ehocam.api_gateway.service.EventService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -37,6 +38,9 @@ public class EventController {
      */
     @GetMapping("/today")
     @Operation(summary = "Get today's events", description = "Retrieve today's events with pagination and filters")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved events",
+                       content = @Content(mediaType = "application/json", 
+                                        schema = @Schema(implementation = EventDto.Response.class)))
     public ResponseEntity<ApiResponse<Page<EventDto.Response>>> getTodaysEvents(
             @Parameter(description = "Language code for multilingual content") @RequestParam(value = "lang", defaultValue = "en") String language,
             @Parameter(description = "Event type filter") @RequestParam(value = "type", required = false) String type,
@@ -53,10 +57,10 @@ public class EventController {
     /**
      * Get events by specific date
      */
-    @GetMapping("/date/{date}")
+    @GetMapping("/by-date")
     @Operation(summary = "Get events by date", description = "Retrieve events for a specific date")
     public ResponseEntity<ApiResponse<Page<EventDto.Response>>> getEventsByDate(
-            @Parameter(description = "Date in YYYY-MM-DD format") @PathVariable String date,
+            @Parameter(description = "Date (yyyy-MM-dd)") @RequestParam String date,
             @Parameter(description = "Language code for multilingual content") @RequestParam(value = "lang", defaultValue = "en") String language,
             @Parameter(description = "Event type filter") @RequestParam(value = "type", required = false) String type,
             @Parameter(description = "Country filter") @RequestParam(value = "country", required = false) String country,
@@ -64,40 +68,10 @@ public class EventController {
             @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "20") int size,
             @Parameter(description = "Sort order") @RequestParam(value = "sort", defaultValue = "DATE_DESC") String sort) {
         
-        try {
-            LocalDateTime dateTime = LocalDateTime.parse(date + "T00:00:00");
-            Long userId = getCurrentUserId();
-            Page<EventDto.Response> events = eventService.getEventsByDate(dateTime, language, type, country, page, size, sort, userId);
-            return ResponseEntity.ok(ApiResponse.success(events));
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date format. Use YYYY-MM-DD");
-        }
-    }
-
-    /**
-     * Get events by date range
-     */
-    @GetMapping("/range")
-    @Operation(summary = "Get events by date range", description = "Retrieve events within a date range")
-    public ResponseEntity<ApiResponse<Page<EventDto.Response>>> getEventsByDateRange(
-            @Parameter(description = "Start date in YYYY-MM-DD format") @RequestParam String startDate,
-            @Parameter(description = "End date in YYYY-MM-DD format") @RequestParam String endDate,
-            @Parameter(description = "Language code for multilingual content") @RequestParam(value = "lang", defaultValue = "en") String language,
-            @Parameter(description = "Event type filter") @RequestParam(value = "type", required = false) String type,
-            @Parameter(description = "Country filter") @RequestParam(value = "country", required = false) String country,
-            @Parameter(description = "Page number (0-based)") @RequestParam(value = "page", defaultValue = "0") int page,
-            @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "20") int size,
-            @Parameter(description = "Sort order") @RequestParam(value = "sort", defaultValue = "DATE_DESC") String sort) {
-        
-        try {
-            LocalDateTime startDateTime = LocalDateTime.parse(startDate + "T00:00:00");
-            LocalDateTime endDateTime = LocalDateTime.parse(endDate + "T23:59:59");
-            Long userId = getCurrentUserId();
-            Page<EventDto.Response> events = eventService.getEventsByDateRange(startDateTime, endDateTime, language, type, country, page, size, sort, userId);
-            return ResponseEntity.ok(ApiResponse.success(events));
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date format. Use YYYY-MM-DD");
-        }
+        Long userId = getCurrentUserId();
+        java.time.LocalDateTime dateTime = java.time.LocalDateTime.parse(date + "T00:00:00");
+        Page<EventDto.Response> events = eventService.getEventsByDate(dateTime, language, type, country, page, size, sort, userId);
+        return ResponseEntity.ok(ApiResponse.success(events));
     }
 
     /**

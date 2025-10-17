@@ -2,25 +2,20 @@ package com.ehocam.api_gateway.entity;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -51,11 +46,6 @@ public class User {
     @Column(name = "password_hash")
     private String passwordHash;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "role")
-    private Set<Role> roles;
 
     @Column(name = "display_name")
     private String displayName;
@@ -85,10 +75,9 @@ public class User {
     // Constructors
     public User() {}
 
-    public User(String email, AuthProvider authProvider, Set<Role> roles) {
+    public User(String email, AuthProvider authProvider) {
         this.email = email;
         this.authProvider = authProvider;
-        this.roles = roles;
     }
 
     // Getters and Setters
@@ -132,13 +121,6 @@ public class User {
         this.passwordHash = passwordHash;
     }
 
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
 
     public String getDisplayName() {
         return displayName;
@@ -201,9 +183,6 @@ public class User {
         LOCAL, GOOGLE, MSFT, APPLE, GUEST
     }
 
-    public enum Role {
-        USER, ADMIN
-    }
 
     // Nested classes for JSONB
     public static class UserPreferences {
@@ -211,6 +190,7 @@ public class User {
         private List<String> countries = List.of("TR");
         private List<String> categories = List.of("science", "politics", "sports", "history", "entertainment");
         private String language = "en";
+        private String timezone = "UTC"; // Default timezone
         private NotificationPreferences notifications = new NotificationPreferences();
 
         // Getters and Setters
@@ -222,6 +202,8 @@ public class User {
         public void setCategories(List<String> categories) { this.categories = categories; }
         public String getLanguage() { return language; }
         public void setLanguage(String language) { this.language = language; }
+        public String getTimezone() { return timezone; }
+        public void setTimezone(String timezone) { this.timezone = timezone; }
         public NotificationPreferences getNotifications() { return notifications; }
         public void setNotifications(NotificationPreferences notifications) { this.notifications = notifications; }
 

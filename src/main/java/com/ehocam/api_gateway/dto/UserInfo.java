@@ -1,7 +1,6 @@
 package com.ehocam.api_gateway.dto;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 import com.ehocam.api_gateway.dto.UserDto.UserPreferencesDto;
 import com.ehocam.api_gateway.entity.User;
@@ -14,7 +13,6 @@ public class UserInfo {
     private String displayName;
     private String avatarUrl;
     private User.AuthProvider authProvider;
-    private Set<User.Role> roles;
     private UserPreferencesDto preferences;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -29,7 +27,6 @@ public class UserInfo {
         this.displayName = user.getDisplayName();
         this.avatarUrl = user.getAvatarUrl();
         this.authProvider = user.getAuthProvider();
-        this.roles = user.getRoles();
         this.preferences = convertToUserPreferencesDto(user.getPreferences());
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
@@ -84,13 +81,6 @@ public class UserInfo {
         this.authProvider = authProvider;
     }
     
-    public Set<User.Role> getRoles() {
-        return roles;
-    }
-    
-    public void setRoles(Set<User.Role> roles) {
-        this.roles = roles;
-    }
     
     public LocalDateTime getCreatedAt() {
         return createdAt;

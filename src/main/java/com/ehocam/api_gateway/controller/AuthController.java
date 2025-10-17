@@ -25,6 +25,8 @@ import com.ehocam.api_gateway.service.AuthService;
 import com.ehocam.api_gateway.service.GoogleOAuth2Service;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -138,6 +140,10 @@ public class AuthController {
 
     @GetMapping("/profile")
     @Operation(summary = "Get user profile", description = "Get current authenticated user's profile")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved user profile",
+                       content = @Content(mediaType = "application/json", 
+                                        schema = @Schema(implementation = UserDto.Response.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized")
     public ResponseEntity<ApiResponse<UserDto.Response>> getProfile() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -152,6 +158,11 @@ public class AuthController {
 
     @PutMapping("/profile")
     @Operation(summary = "Update user profile", description = "Update current authenticated user's profile")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully updated user profile",
+                       content = @Content(mediaType = "application/json", 
+                                        schema = @Schema(implementation = UserDto.Response.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad request")
     public ResponseEntity<ApiResponse<UserDto.Response>> updateProfile(
             @Valid @RequestBody UserDto.UpdateRequest request) {
 
@@ -186,7 +197,6 @@ public class AuthController {
         response.setId(user.getId());
         response.setEmail(user.getEmail());
         response.setAuthProvider(user.getAuthProvider());
-        response.setRoles(user.getRoles());
         response.setDisplayName(user.getDisplayName());
         response.setAvatarUrl(user.getAvatarUrl());
         response.setCreatedAt(user.getCreatedAt());
@@ -204,6 +214,7 @@ public class AuthController {
 
             preferencesDto.setSelectedCategories(user.getPreferences().getCategories());
             preferencesDto.setLanguage(user.getPreferences().getLanguage());
+            preferencesDto.setTimezone(user.getPreferences().getTimezone());
 
             // Convert NotificationPreferences to boolean
             if (user.getPreferences().getNotifications() != null) {

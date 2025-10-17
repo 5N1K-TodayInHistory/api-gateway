@@ -1,7 +1,7 @@
 package com.ehocam.api_gateway.security;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -37,9 +37,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         @Override
         public Collection<? extends GrantedAuthority> getAuthorities() {
-            return user.getRoles().stream()
-                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
-                    .collect(Collectors.toList());
+            // All users have USER role since we removed role system
+            return List.of(new SimpleGrantedAuthority("ROLE_USER"));
         }
 
         @Override

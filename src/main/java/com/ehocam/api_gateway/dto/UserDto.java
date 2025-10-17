@@ -2,10 +2,10 @@ package com.ehocam.api_gateway.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 import com.ehocam.api_gateway.entity.User;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -62,16 +62,34 @@ public class UserDto {
         public void setPreferences(UserPreferencesDto preferences) { this.preferences = preferences; }
     }
 
+    @Schema(description = "User profile response data")
     public static class Response {
+        @Schema(description = "User ID")
         private Long id;
+        
+        @Schema(description = "User email address")
         private String email;
+        
+        @Schema(description = "Authentication provider")
         private User.AuthProvider authProvider;
-        private Set<User.Role> roles;
+        
+        
+        @Schema(description = "Display name")
         private String displayName;
+        
+        @Schema(description = "Avatar URL")
         private String avatarUrl;
+        
+        @Schema(description = "User preferences")
         private UserPreferencesDto preferences;
+        
+        @Schema(description = "User devices")
         private List<DeviceDto> devices;
+        
+        @Schema(description = "Creation timestamp")
         private LocalDateTime createdAt;
+        
+        @Schema(description = "Last update timestamp")
         private LocalDateTime updatedAt;
 
         // Getters and Setters
@@ -81,8 +99,6 @@ public class UserDto {
         public void setEmail(String email) { this.email = email; }
         public User.AuthProvider getAuthProvider() { return authProvider; }
         public void setAuthProvider(User.AuthProvider authProvider) { this.authProvider = authProvider; }
-        public Set<User.Role> getRoles() { return roles; }
-        public void setRoles(Set<User.Role> roles) { this.roles = roles; }
         public String getDisplayName() { return displayName; }
         public void setDisplayName(String displayName) { this.displayName = displayName; }
         public String getAvatarUrl() { return avatarUrl; }
@@ -97,10 +113,16 @@ public class UserDto {
         public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     }
 
+    @Schema(description = "User profile update request")
     public static class UpdateRequest {
+        @Schema(description = "Display name", example = "John Doe")
         @NotBlank(message = "Display name is required")
         private String displayName;
+        
+        @Schema(description = "Avatar URL", example = "https://example.com/avatar.jpg")
         private String avatarUrl;
+        
+        @Schema(description = "User preferences")
         private UserPreferencesDto preferences;
 
         // Getters and Setters
@@ -112,13 +134,28 @@ public class UserDto {
         public void setPreferences(UserPreferencesDto preferences) { this.preferences = preferences; }
     }
 
+    @Schema(description = "User preferences configuration")
     public static class UserPreferencesDto {
+        @Schema(description = "View mode", example = "list", allowableValues = {"list", "grid"})
         private String viewMode = "list";
+        
+        @Schema(description = "Selected country code", example = "US")
         private String selectedCountry = "US";
+        
+        @Schema(description = "Selected categories", example = "[\"science\", \"sports\"]")
         private List<String> selectedCategories = List.of("science", "sports");
+        
+        @Schema(description = "Preferred language", example = "en", allowableValues = {"en", "tr", "es", "de", "fr", "ar"})
         private String language = "en";
+        
+        @Schema(description = "User timezone", example = "UTC")
+        private String timezone = "UTC";
+        
+        @Schema(description = "Enable notifications")
         private boolean notifications = false;
-        private boolean darkMode = true;
+        
+        @Schema(description = "Dark mode enabled")
+        private boolean darkMode = false;
 
         // Getters and Setters
         public String getViewMode() { return viewMode; }
@@ -129,6 +166,8 @@ public class UserDto {
         public void setSelectedCategories(List<String> selectedCategories) { this.selectedCategories = selectedCategories; }
         public String getLanguage() { return language; }
         public void setLanguage(String language) { this.language = language; }
+        public String getTimezone() { return timezone; }
+        public void setTimezone(String timezone) { this.timezone = timezone; }
         public boolean isNotifications() { return notifications; }
         public void setNotifications(boolean notifications) { this.notifications = notifications; }
         public boolean isDarkMode() { return darkMode; }

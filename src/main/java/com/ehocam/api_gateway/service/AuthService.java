@@ -85,6 +85,7 @@ public class AuthService {
             
             preferences.setCategories(request.getPreferences().getSelectedCategories());
             preferences.setLanguage(request.getPreferences().getLanguage());
+            preferences.setTimezone(request.getPreferences().getTimezone());
             
             User.UserPreferences.NotificationPreferences notifications = new User.UserPreferences.NotificationPreferences();
             notifications.setDaily(request.getPreferences().isNotifications());
