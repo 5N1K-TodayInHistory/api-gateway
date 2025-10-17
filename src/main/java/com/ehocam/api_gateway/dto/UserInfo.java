@@ -131,7 +131,7 @@ public class UserInfo {
         }
         
         // Set default darkMode since it doesn't exist in entity
-        dto.setDarkMode(true);
+        dto.setDarkMode(false);
         
         return dto;
     }

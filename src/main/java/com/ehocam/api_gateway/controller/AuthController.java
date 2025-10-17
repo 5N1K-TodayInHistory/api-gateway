@@ -245,7 +245,7 @@ public class AuthController {
             }
 
             // Set default darkMode
-            preferencesDto.setDarkMode(true);
+            preferencesDto.setDarkMode(false);
 
             response.setPreferences(preferencesDto);
         }

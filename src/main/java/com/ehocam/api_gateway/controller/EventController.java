@@ -51,23 +51,20 @@ public class EventController {
             @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "20") int size,
             @Parameter(description = "Sort order") @RequestParam(value = "sort", defaultValue = "DATE_DESC") String sort) {
         
-        Long userId = getCurrentUserId();
-        Page<EventDto.Response> events = eventService.getTodaysEvents(language, type, country, page, size, sort, userId);
-        return ResponseEntity.ok(ApiResponse.success(events));
+        return getEventsForDay(0, language, type, country, page, size, sort);
     }
 
     /**
-     * Get events by specific date
+     * Get tomorrow's events with pagination and filters
      */
-    @GetMapping("/by-date")
-    @Operation(summary = "Get events by date", description = "Retrieve events for a specific date")
+    @GetMapping("/tomorrow")
+    @Operation(summary = "Get tomorrow's events", description = "Retrieve tomorrow's events with pagination and filters")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved events",
                        content = @Content(mediaType = "application/json", 
                                         schema = @Schema(implementation = ApiResponse.class)))
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad request")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
-    public ResponseEntity<ApiResponse<Page<EventDto.Response>>> getEventsByDate(
-            @Parameter(description = "Date (yyyy-MM-dd)") @RequestParam String date,
+    public ResponseEntity<ApiResponse<Page<EventDto.Response>>> getTomorrowsEvents(
             @Parameter(description = "Language code for multilingual content") @RequestParam(value = "lang", defaultValue = "en") String language,
             @Parameter(description = "Event type filter") @RequestParam(value = "type", required = false) String type,
             @Parameter(description = "Country filter") @RequestParam(value = "country", required = false) String country,
@@ -75,10 +72,28 @@ public class EventController {
             @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "20") int size,
             @Parameter(description = "Sort order") @RequestParam(value = "sort", defaultValue = "DATE_DESC") String sort) {
         
-        Long userId = getCurrentUserId();
-        java.time.LocalDateTime dateTime = java.time.LocalDateTime.parse(date + "T00:00:00");
-        Page<EventDto.Response> events = eventService.getEventsByDate(dateTime, language, type, country, page, size, sort, userId);
-        return ResponseEntity.ok(ApiResponse.success(events));
+        return getEventsForDay(1, language, type, country, page, size, sort);
+    }
+
+    /**
+     * Get yesterday's events with pagination and filters
+     */
+    @GetMapping("/yesterday")
+    @Operation(summary = "Get yesterday's events", description = "Retrieve yesterday's events with pagination and filters")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved events",
+                       content = @Content(mediaType = "application/json", 
+                                        schema = @Schema(implementation = ApiResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad request")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
+    public ResponseEntity<ApiResponse<Page<EventDto.Response>>> getYesterdaysEvents(
+            @Parameter(description = "Language code for multilingual content") @RequestParam(value = "lang", defaultValue = "en") String language,
+            @Parameter(description = "Event type filter") @RequestParam(value = "type", required = false) String type,
+            @Parameter(description = "Country filter") @RequestParam(value = "country", required = false) String country,
+            @Parameter(description = "Page number (0-based)") @RequestParam(value = "page", defaultValue = "0") int page,
+            @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "20") int size,
+            @Parameter(description = "Sort order") @RequestParam(value = "sort", defaultValue = "DATE_DESC") String sort) {
+        
+        return getEventsForDay(-1, language, type, country, page, size, sort);
     }
 
     /**
@@ -99,6 +114,15 @@ public class EventController {
         Optional<EventDto.Response> event = eventService.getEventById(id, language, userId);
         return event.map(e -> ResponseEntity.ok(ApiResponse.success(e)))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+    }
+
+    /**
+     * Common method to get events for a specific day
+     */
+    private ResponseEntity<ApiResponse<Page<EventDto.Response>>> getEventsForDay(int dayOffset, String language, String type, String country, int page, int size, String sort) {
+        Long userId = getCurrentUserId();
+        Page<EventDto.Response> events = eventService.getEventsForDay(dayOffset, language, type, country, page, size, sort, userId);
+        return ResponseEntity.ok(ApiResponse.success(events));
     }
 
     /**

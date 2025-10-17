@@ -54,33 +54,44 @@ public class EventService {
     }
 
     /**
-     * Get today's events with pagination and filters
+     * Get events for a specific day (today, yesterday, tomorrow) with pagination and filters
      */
     @Transactional(readOnly = true)
-    public Page<EventDto.Response> getTodaysEvents(String language, String type, String country, 
+    public Page<EventDto.Response> getEventsForDay(int dayOffset, String language, String type, String country, 
                                                    int page, int size, String sort, Long userId) {
         Pageable pageable = PageRequest.of(page, size);
         
         // Get user's preferred language
         String userLanguage = getUserLanguage(userId, language);
         
-        // Get today's date range
-        LocalDateTime startOfToday = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
-        LocalDateTime endOfToday = startOfToday.plusDays(1);
+        // Get date range for the specified day
+        LocalDateTime startOfDay = LocalDateTime.now()
+                .plusDays(dayOffset)
+                .withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime endOfDay = startOfDay.plusDays(1);
         
         Page<Event> events;
 
         if (type != null && country != null) {
-            events = eventRepository.findTodaysEventsByTypeAndCountry(startOfToday, endOfToday, type, country, pageable);
+            events = eventRepository.findTodaysEventsByTypeAndCountry(startOfDay, endOfDay, type, country, pageable);
         } else if (type != null) {
-            events = eventRepository.findTodaysEventsByType(startOfToday, endOfToday, type, pageable);
+            events = eventRepository.findTodaysEventsByType(startOfDay, endOfDay, type, pageable);
         } else if (country != null) {
-            events = eventRepository.findTodaysEventsByCountry(startOfToday, endOfToday, country, pageable);
+            events = eventRepository.findTodaysEventsByCountry(startOfDay, endOfDay, country, pageable);
         } else {
-            events = eventRepository.findTodaysEvents(startOfToday, endOfToday, pageable);
+            events = eventRepository.findTodaysEvents(startOfDay, endOfDay, pageable);
         }
 
         return events.map(event -> convertToResponse(event, userLanguage));
+    }
+
+    /**
+     * Get today's events with pagination and filters
+     */
+    @Transactional(readOnly = true)
+    public Page<EventDto.Response> getTodaysEvents(String language, String type, String country, 
+                                                   int page, int size, String sort, Long userId) {
+        return getEventsForDay(0, language, type, country, page, size, sort, userId);
     }
 
     /**
