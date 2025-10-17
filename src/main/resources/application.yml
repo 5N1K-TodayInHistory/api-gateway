@@ -104,6 +104,25 @@ springdoc:
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: never
+      show-components: never
+  health:
+    defaults:
+      enabled: true
+    db:
+      enabled: true
+    redis:
+      enabled: true
+
 ---
 # Development Profile
 spring:
