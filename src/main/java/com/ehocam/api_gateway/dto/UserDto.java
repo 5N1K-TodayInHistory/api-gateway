@@ -136,25 +136,25 @@ public class UserDto {
 
     @Schema(description = "User preferences configuration")
     public static class UserPreferencesDto {
-        @Schema(description = "View mode", example = "list", allowableValues = {"list", "grid"})
+        @Schema(description = "View mode preference", example = "list", allowableValues = {"list", "grid"}, required = false)
         private String viewMode = "list";
         
-        @Schema(description = "Selected country code", example = "US")
+        @Schema(description = "Selected country code", example = "US", required = false)
         private String selectedCountry = "US";
         
-        @Schema(description = "Selected categories", example = "[\"science\", \"sports\"]")
+        @Schema(description = "Selected event categories", example = "[\"science\", \"sports\", \"politics\"]", required = false)
         private List<String> selectedCategories = List.of("science", "sports");
         
-        @Schema(description = "Preferred language", example = "en", allowableValues = {"en", "tr", "es", "de", "fr", "ar"})
+        @Schema(description = "Language preference", example = "en", allowableValues = {"en", "tr", "es", "de", "fr", "ar"}, required = false)
         private String language = "en";
         
-        @Schema(description = "User timezone", example = "UTC")
+        @Schema(description = "Timezone preference", example = "UTC", required = false)
         private String timezone = "UTC";
         
-        @Schema(description = "Enable notifications")
+        @Schema(description = "Push notifications enabled", example = "false", required = false)
         private boolean notifications = false;
         
-        @Schema(description = "Dark mode enabled")
+        @Schema(description = "Dark mode enabled", example = "false", required = false)
         private boolean darkMode = false;
 
         // Getters and Setters

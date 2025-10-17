@@ -164,6 +164,14 @@ public class AuthController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad request")
     public ResponseEntity<ApiResponse<UserDto.Response>> updateProfile(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "User profile update data",
+                required = true,
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = UserDto.UpdateRequest.class)
+                )
+            )
             @Valid @RequestBody UserDto.UpdateRequest request) {
 
         try {
