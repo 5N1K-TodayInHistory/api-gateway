@@ -3,7 +3,7 @@ spring:
     name: api-gateway
 
   profiles:
-    active: dev
+    active: debug
 
   # Database Configuration
   datasource:
@@ -83,6 +83,7 @@ cors:
 server:
   port: ${SERVER_PORT:8080}
   servlet:
+    context-path: /api
 
 # Logging Configuration
 logging:
@@ -124,39 +125,13 @@ management:
       enabled: true
 
 ---
-# Development Profile
-spring:
-  config:
-    activate:
-      on-profile: dev
-
-  # Local Redis Configuration for Development
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      database: 0
-      timeout: 2000ms
-
-  jpa:
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-
-logging:
-  level:
-    com.ehocam.api_gateway: DEBUG
-    org.springframework.security: DEBUG
-
----
 # Production Profile
 spring:
   config:
     activate:
-      on-profile: prod
+      on-profile: dev,prod
 
-  # Production Redis Configuration
+  # Redis Configuration (dev & prod from environment)
   data:
     redis:
       host: ${REDIS_HOST}
@@ -165,11 +140,34 @@ spring:
       password: ${REDIS_PASSWORD}
       database: ${REDIS_DATABASE:0}
 
+  # Datasource (dev & prod from environment)
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+
   jpa:
     show-sql: false
     properties:
       hibernate:
         format_sql: false
+
+# Server (dev & prod from environment)
+server:
+  port: ${SERVER_PORT}
+
+# JWT (dev & prod from environment)
+jwt:
+  secret: ${JWT_SECRET}
+
+# Google OAuth2 (dev & prod from environment)
+google:
+  oauth2:
+    client-id: ${GOOGLE_CLIENT_ID}
+
+# CORS (dev & prod from environment)
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
 
 logging:
   level:
