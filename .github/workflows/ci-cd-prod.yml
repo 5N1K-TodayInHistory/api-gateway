@@ -16,6 +16,7 @@ jobs:
   build-and-push:
     name: Build and Push Docker Image (prod)
     runs-on: ubuntu-latest
+    environment: prod
     if: github.event_name == 'push'
 
     permissions:
@@ -62,6 +63,7 @@ jobs:
     name: Deploy (prod)
     runs-on: ubuntu-latest
     needs: build-and-push
+    environment: prod
     steps:
       - name: Call deploy endpoint
         run: |
