@@ -1,22 +1,22 @@
-name: Build and Push Docker Image
+name: Build and Push Docker Image (dev)
 
 on:
   workflow_dispatch:
   push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
+    branches: [develop]
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  DOCKERFILE: Dockerfile
+  SPRING_PROFILE: dev
 
 jobs:
-  # Build and Push Docker Image
+  # Build and Push Docker Image (dev)
   build-and-push:
-    name: Build and Push Docker Image
+    name: Build and Push Docker Image (dev)
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    if: github.event_name == 'push'
 
     permissions:
       contents: read
@@ -42,15 +42,15 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=dev
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ${{ env.DOCKERFILE }}
+          build-args: |
+            SPRING_PROFILE=${{ env.SPRING_PROFILE }}
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
