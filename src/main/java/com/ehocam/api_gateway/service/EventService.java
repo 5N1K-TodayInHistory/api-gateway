@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -89,6 +91,7 @@ public class EventService {
      * Get today's events with pagination and filters
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = "todayByCountry", key = "#country + ':' + T(java.time.LocalDate).now().getMonthValue() + '-' + T(java.time.LocalDate).now().getDayOfMonth() + ':' + #type + ':' + #page + ':' + #size + ':' + #language")
     public Page<EventDto.Response> getTodaysEvents(String language, String type, String country, 
                                                    int page, int size, String sort, Long userId) {
         return getEventsForDay(0, type, country, page, size, sort, userId, language);
@@ -130,6 +133,7 @@ public class EventService {
      * Like an event
      */
     @Transactional
+    @CacheEvict(value = {"eventDetail", "todayByCountry", "trending24h"}, allEntries = true)
     public EventDto.LikeResponse likeEvent(Long eventId, Long userId) {
         // Check if already liked
         if (eventLikeRepository.existsByEventIdAndUserId(eventId, userId)) {
@@ -159,6 +163,7 @@ public class EventService {
      * Unlike an event
      */
     @Transactional
+    @CacheEvict(value = {"eventDetail", "todayByCountry", "trending24h"}, allEntries = true)
     public EventDto.LikeResponse unlikeEvent(Long eventId, Long userId) {
         // Check if liked
         if (!eventLikeRepository.existsByEventIdAndUserId(eventId, userId)) {
@@ -241,11 +246,64 @@ public class EventService {
      * Get a single event by ID
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = "eventDetail", key = "#eventId + ':' + #language")
     public Optional<EventDto.Response> getEventById(Long eventId, String language, Long userId) {
         // Get user's preferred language
         String userLanguage = getUserLanguage(userId, language);
         
         return eventRepository.findById(eventId)
                 .map(event -> convertToResponse(event, userLanguage));
+    }
+
+    /**
+     * Get similar events based on type and country
+     */
+    @Transactional(readOnly = true)
+    @Cacheable(value = "similarEvents", key = "#eventId + ':' + #language")
+    public List<EventDto.Response> getSimilarEvents(Long eventId, String language, Long userId, int limit) {
+        // Get user's preferred language
+        String userLanguage = getUserLanguage(userId, language);
+        
+        // Get the original event to find similar ones
+        Optional<Event> originalEventOpt = eventRepository.findById(eventId);
+        if (originalEventOpt.isEmpty()) {
+            return List.of();
+        }
+        
+        Event originalEvent = originalEventOpt.get();
+        Pageable pageable = PageRequest.of(0, limit);
+        
+        // Find events with same type and country, excluding the original event
+        Page<Event> similarEvents = eventRepository.findByTypeAndCountryOrderByDateDesc(
+            originalEvent.getType(), 
+            originalEvent.getCountry(), 
+            pageable
+        );
+        
+        return similarEvents.getContent().stream()
+                .filter(event -> !event.getId().equals(eventId))
+                .map(event -> convertToResponse(event, userLanguage))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get trending events in the last 24 hours
+     */
+    @Transactional(readOnly = true)
+    @Cacheable(value = "trending24h", key = "#language + ':' + #page + ':' + #size")
+    public Page<EventDto.Response> getTrendingEvents(String language, int page, int size, Long userId) {
+        // Get user's preferred language
+        String userLanguage = getUserLanguage(userId, language);
+        
+        // Get events from last 24 hours, ordered by likes count
+        LocalDateTime twentyFourHoursAgo = LocalDateTime.now().minusHours(24);
+        Pageable pageable = PageRequest.of(page, size);
+        
+        Page<Event> trendingEvents = eventRepository.findByDateAfterOrderByLikesCountDesc(
+            twentyFourHoursAgo, 
+            pageable
+        );
+        
+        return trendingEvents.map(event -> convertToResponse(event, userLanguage));
     }
 }
