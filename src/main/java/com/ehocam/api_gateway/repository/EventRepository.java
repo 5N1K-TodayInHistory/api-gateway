@@ -91,4 +91,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
      */
     @Query("SELECT e FROM Event e WHERE e.date >= :startOfToday AND e.date < :endOfToday AND e.type = :type AND e.country = :country ORDER BY e.date DESC")
     Page<Event> findTodaysEventsByTypeAndCountry(@Param("startOfToday") LocalDateTime startOfToday, @Param("endOfToday") LocalDateTime endOfToday, @Param("type") String type, @Param("country") String country, Pageable pageable);
+
+    /**
+     * Find events after a specific date, ordered by likes count (for trending)
+     */
+    @Query("SELECT e FROM Event e WHERE e.date >= :date ORDER BY e.likesCount DESC, e.date DESC")
+    Page<Event> findByDateAfterOrderByLikesCountDesc(@Param("date") LocalDateTime date, Pageable pageable);
 }

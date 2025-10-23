@@ -47,6 +47,14 @@ spring:
           max-idle: 8
           min-idle: 0
 
+  # Cache Configuration
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000 # Default 5 minutes in milliseconds
+      cache-null-values: false
+      enable-statistics: true
+
 # JWT Configuration
 jwt:
   secret: ${JWT_SECRET:RHM9dVjyEn6NGTEW3KUobcdmuRVxEngj}
@@ -59,6 +67,17 @@ google:
     client-id: ${GOOGLE_CLIENT_ID:373844583085-h96gpiof3727tjh9tm9dvl4bkml0sqtm.apps.googleusercontent.com}
     issuer: https://accounts.google.com
     jwks-uri: https://www.googleapis.com/oauth2/v3/certs
+
+# Cache TTL Configuration (in seconds)
+cache:
+  ttl:
+    todayByCountry: 600 # 10 minutes
+    eventDetail: 1800 # 30 minutes
+    similarEvents: 3600 # 60 minutes
+    trending24h: 300 # 5 minutes
+    supportedLocales: 21600 # 6 hours
+    countries: 21600 # 6 hours
+    languages: 21600 # 6 hours
 
 # Rate Limiting Configuration
 rate-limit:
