@@ -33,6 +33,10 @@ RUN addgroup -g 1001 -S appgroup && \
 # Set working directory
 WORKDIR /app
 
+# Allow selecting Spring profile at build-time; defaults to dev.
+ARG SPRING_PROFILE=dev
+ENV SPRING_PROFILE=${SPRING_PROFILE}
+
 # Install necessary packages
 RUN apk add --no-cache \
     curl \
@@ -63,7 +67,7 @@ ENV JAVA_OPTS="-XX:+UseContainerSupport \
                -XX:+UseG1GC \
                -XX:+UseStringDeduplication \
                -Djava.security.egd=file:/dev/./urandom \
-               -Dspring.profiles.active=prod"
+               -Dspring.profiles.active=${SPRING_PROFILE}"
 
 # Run the application
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
