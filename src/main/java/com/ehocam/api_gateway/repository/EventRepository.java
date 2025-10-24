@@ -97,4 +97,19 @@ public interface EventRepository extends JpaRepository<Event, Long> {
      */
     @Query("SELECT e FROM Event e WHERE e.date >= :date ORDER BY e.likesCount DESC, e.date DESC")
     Page<Event> findByDateAfterOrderByLikesCountDesc(@Param("date") LocalDateTime date, Pageable pageable);
+
+    /**
+     * Find events by country and month_day, ordered by score DESC
+     * This method uses the new performance indexes for optimal query performance
+     */
+    @Query(value = """
+        SELECT * FROM events 
+        WHERE country = :country AND month_day = :monthDay 
+        ORDER BY score DESC NULLS LAST, date DESC
+        """, nativeQuery = true)
+    Page<Event> findByCountryAndMonthDayOrderByScoreDesc(
+        @Param("country") String country, 
+        @Param("monthDay") String monthDay, 
+        Pageable pageable
+    );
 }

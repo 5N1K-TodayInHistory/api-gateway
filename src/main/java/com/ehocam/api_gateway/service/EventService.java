@@ -1,5 +1,6 @@
 package com.ehocam.api_gateway.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -305,5 +306,68 @@ public class EventService {
         );
         
         return trendingEvents.map(event -> convertToResponse(event, userLanguage));
+    }
+
+    /**
+     * Get today's events by country using optimized month_day query
+     * This method uses the new performance indexes for optimal query performance
+     */
+    @Transactional(readOnly = true)
+    @Cacheable(value = "todayByCountryOptimized", key = "#countryCode + ':' + T(java.time.LocalDate).now().getMonthValue() + '-' + T(java.time.LocalDate).now().getDayOfMonth() + ':' + #page + ':' + #size + ':' + #language")
+    public Page<EventDto.Response> findTodayByCountry(String countryCode, String language, int page, int size, Long userId) {
+        // Get user's preferred language
+        String userLanguage = getUserLanguage(userId, language);
+        
+        // Generate month_day for today (MM-DD format)
+        LocalDate today = LocalDate.now();
+        String monthDay = String.format("%02d-%02d", today.getMonthValue(), today.getDayOfMonth());
+        
+        // Use optimized repository method with performance indexes
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Event> events = eventRepository.findByCountryAndMonthDayOrderByScoreDesc(countryCode, monthDay, pageable);
+        
+        return events.map(event -> convertToResponse(event, userLanguage));
+    }
+
+    /**
+     * Get tomorrow's events by country using optimized month_day query
+     * This method uses the new performance indexes for optimal query performance
+     */
+    @Transactional(readOnly = true)
+    @Cacheable(value = "tomorrowByCountryOptimized", key = "#countryCode + ':' + T(java.time.LocalDate).now().plusDays(1).getMonthValue() + '-' + T(java.time.LocalDate).now().plusDays(1).getDayOfMonth() + ':' + #page + ':' + #size + ':' + #language")
+    public Page<EventDto.Response> findTomorrowByCountry(String countryCode, String language, int page, int size, Long userId) {
+        // Get user's preferred language
+        String userLanguage = getUserLanguage(userId, language);
+        
+        // Generate month_day for tomorrow (MM-DD format)
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        String monthDay = String.format("%02d-%02d", tomorrow.getMonthValue(), tomorrow.getDayOfMonth());
+        
+        // Use optimized repository method with performance indexes
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Event> events = eventRepository.findByCountryAndMonthDayOrderByScoreDesc(countryCode, monthDay, pageable);
+        
+        return events.map(event -> convertToResponse(event, userLanguage));
+    }
+
+    /**
+     * Get yesterday's events by country using optimized month_day query
+     * This method uses the new performance indexes for optimal query performance
+     */
+    @Transactional(readOnly = true)
+    @Cacheable(value = "yesterdayByCountryOptimized", key = "#countryCode + ':' + T(java.time.LocalDate).now().minusDays(1).getMonthValue() + '-' + T(java.time.LocalDate).now().minusDays(1).getDayOfMonth() + ':' + #page + ':' + #size + ':' + #language")
+    public Page<EventDto.Response> findYesterdayByCountry(String countryCode, String language, int page, int size, Long userId) {
+        // Get user's preferred language
+        String userLanguage = getUserLanguage(userId, language);
+        
+        // Generate month_day for yesterday (MM-DD format)
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        String monthDay = String.format("%02d-%02d", yesterday.getMonthValue(), yesterday.getDayOfMonth());
+        
+        // Use optimized repository method with performance indexes
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Event> events = eventRepository.findByCountryAndMonthDayOrderByScoreDesc(countryCode, monthDay, pageable);
+        
+        return events.map(event -> convertToResponse(event, userLanguage));
     }
 }

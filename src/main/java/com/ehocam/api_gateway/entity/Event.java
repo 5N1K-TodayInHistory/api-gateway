@@ -93,6 +93,17 @@ public class Event {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // Performance optimization fields
+    @Column(name = "month_day", insertable = false, updatable = false)
+    private String monthDay; // Generated column: MM-DD format
+
+    @Column(name = "score")
+    private Short score; // Importance score 1-100
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "importance_reason", columnDefinition = "jsonb")
+    private Map<String, String> importanceReason; // Multilingual importance explanation
+
     // Relationships
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EventLike> likes;
@@ -242,6 +253,31 @@ public class Event {
         this.references = references;
     }
 
+    // Getters and Setters for new performance fields
+    public String getMonthDay() {
+        return monthDay;
+    }
+
+    public void setMonthDay(String monthDay) {
+        this.monthDay = monthDay;
+    }
+
+    public Short getScore() {
+        return score;
+    }
+
+    public void setScore(Short score) {
+        this.score = score;
+    }
+
+    public Map<String, String> getImportanceReason() {
+        return importanceReason;
+    }
+
+    public void setImportanceReason(Map<String, String> importanceReason) {
+        this.importanceReason = importanceReason;
+    }
+
     // Helper methods for multilingual content
     public String getTitleForLanguage(String languageCode) {
         if (title == null) {
@@ -300,6 +336,9 @@ public class Event {
                 ", audioUrls=" + audioUrls +
                 ", likesCount=" + likesCount +
                 ", commentsCount=" + commentsCount +
+                ", monthDay='" + monthDay + '\'' +
+                ", score=" + score +
+                ", importanceReason=" + importanceReason +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

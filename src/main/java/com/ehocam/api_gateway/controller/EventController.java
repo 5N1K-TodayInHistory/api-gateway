@@ -34,10 +34,10 @@ public class EventController {
     private EventService eventService;
 
     /**
-     * Get today's events with pagination and filters
+     * Get today's events with pagination and filters (optimized version)
      */
     @GetMapping("/today")
-    @Operation(summary = "Get today's events", description = "Retrieve today's events with pagination and filters")
+    @Operation(summary = "Get today's events", description = "Retrieve today's events with pagination and filters. Uses optimized month_day queries for better performance.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved events",
                        content = @Content(mediaType = "application/json", 
                                         schema = @Schema(implementation = ApiResponse.class)))
@@ -51,14 +51,21 @@ public class EventController {
             @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "20") int size,
             @Parameter(description = "Sort order") @RequestParam(value = "sort", defaultValue = "DATE_DESC") String sort) {
         
+        // Use optimized method if country is specified, otherwise use standard method
+        if (country != null && !country.isEmpty()) {
+            Long userId = getCurrentUserId();
+            Page<EventDto.Response> events = eventService.findTodayByCountry(country, language, page, size, userId);
+            return ResponseEntity.ok(ApiResponse.success(events));
+        }
+        
         return getEventsForDay(0, type, country, page, size, sort, language);
     }
 
     /**
-     * Get tomorrow's events with pagination and filters
+     * Get tomorrow's events with pagination and filters (optimized version)
      */
     @GetMapping("/tomorrow")
-    @Operation(summary = "Get tomorrow's events", description = "Retrieve tomorrow's events with pagination and filters")
+    @Operation(summary = "Get tomorrow's events", description = "Retrieve tomorrow's events with pagination and filters. Uses optimized month_day queries for better performance.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved events",
                        content = @Content(mediaType = "application/json", 
                                         schema = @Schema(implementation = ApiResponse.class)))
@@ -72,14 +79,21 @@ public class EventController {
             @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "20") int size,
             @Parameter(description = "Sort order") @RequestParam(value = "sort", defaultValue = "DATE_DESC") String sort) {
         
+        // Use optimized method if country is specified, otherwise use standard method
+        if (country != null && !country.isEmpty()) {
+            Long userId = getCurrentUserId();
+            Page<EventDto.Response> events = eventService.findTomorrowByCountry(country, language, page, size, userId);
+            return ResponseEntity.ok(ApiResponse.success(events));
+        }
+        
         return getEventsForDay(1, type, country, page, size, sort, language);
     }
 
     /**
-     * Get yesterday's events with pagination and filters
+     * Get yesterday's events with pagination and filters (optimized version)
      */
     @GetMapping("/yesterday")
-    @Operation(summary = "Get yesterday's events", description = "Retrieve yesterday's events with pagination and filters")
+    @Operation(summary = "Get yesterday's events", description = "Retrieve yesterday's events with pagination and filters. Uses optimized month_day queries for better performance.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved events",
                        content = @Content(mediaType = "application/json", 
                                         schema = @Schema(implementation = ApiResponse.class)))
@@ -92,6 +106,13 @@ public class EventController {
             @Parameter(description = "Page number (0-based)") @RequestParam(value = "page", defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "20") int size,
             @Parameter(description = "Sort order") @RequestParam(value = "sort", defaultValue = "DATE_DESC") String sort) {
+        
+        // Use optimized method if country is specified, otherwise use standard method
+        if (country != null && !country.isEmpty()) {
+            Long userId = getCurrentUserId();
+            Page<EventDto.Response> events = eventService.findYesterdayByCountry(country, language, page, size, userId);
+            return ResponseEntity.ok(ApiResponse.success(events));
+        }
         
         return getEventsForDay(-1, type, country, page, size, sort, language);
     }
