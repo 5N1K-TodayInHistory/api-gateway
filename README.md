@@ -344,16 +344,6 @@ curl -o contracts/openapi.yaml http://localhost:8080/v3/api-docs
 # http://localhost:8080/swagger-ui.html
 ```
 
-### Pact Verify
-
-```bash
-# Pact verification testlerini çalıştır
-mvn test -Dtest=EventControllerPactTest
-
-# Environment variables
-export PACT_BROKER_TOKEN=your-token
-export pactbroker.url=http://your-pact-broker-url
-```
 
 ### CI Gate
 
@@ -364,21 +354,16 @@ redocly diff contracts/openapi-main.yaml contracts/openapi.yaml --fail-on-diff
 # Tüm testleri çalıştır
 mvn clean test
 
-# Pact verification
-mvn test -Dtest=EventControllerPactTest
 ```
 
 ### Docker Support
 
 ```bash
-# Tüm servisleri çalıştır (PostgreSQL, Redis, Pact Broker)
+# Tüm servisleri çalıştır (PostgreSQL, Redis)
 docker-compose up -d
 
 # Sadece veritabanı servisleri
 docker-compose up -d postgres redis
-
-# Pact Broker'ı ayrı ayrı çalıştır
-docker-compose up -d pact-broker
 
 # Servisleri durdur
 docker-compose down

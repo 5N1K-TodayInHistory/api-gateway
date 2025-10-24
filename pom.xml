@@ -136,19 +136,6 @@
 			<version>2.2.0</version>
 		</dependency>
 
-		<!-- Pact JVM for Contract Testing -->
-		<dependency>
-			<groupId>au.com.dius.pact.provider</groupId>
-			<artifactId>junit5</artifactId>
-			<version>4.6.7</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>au.com.dius.pact.provider</groupId>
-			<artifactId>spring</artifactId>
-			<version>4.6.7</version>
-			<scope>test</scope>
-		</dependency>
 
 		<!-- Development -->
 		<dependency>
