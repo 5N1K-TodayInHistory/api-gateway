@@ -114,13 +114,23 @@ logging:
 # OpenAPI/Swagger Configuration
 springdoc:
   api-docs:
-    path: /api-docs
+    path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
     operationsSorter: method
   show-actuator: true
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
+  info:
+    title: 5N1K API Gateway
+    version: @project.version@
+    description: 5N1K API Gateway with multilingual support and event performance optimization
+    contact:
+      name: 5N1K Team
+      email: support@5n1k.io
+    license:
+      name: MIT
+      url: https://opensource.org/licenses/MIT
 
 # Actuator Configuration
 management:

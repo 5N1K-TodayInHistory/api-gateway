@@ -331,6 +331,43 @@ mvn test
 mvn flyway:migrate
 ```
 
+### OpenAPI Export
+
+```bash
+# OpenAPI spec'i export et
+mvn clean compile -Popenapi-export
+
+# Manuel export (uygulama çalışırken)
+curl -o contracts/openapi.yaml http://localhost:8080/v3/api-docs
+
+# Swagger UI'ya erişim
+# http://localhost:8080/swagger-ui.html
+```
+
+### Pact Verify
+
+```bash
+# Pact verification testlerini çalıştır
+mvn test -Dtest=EventControllerPactTest
+
+# Environment variables
+export PACT_BROKER_TOKEN=your-token
+export pactbroker.url=http://your-pact-broker-url
+```
+
+### CI Gate
+
+```bash
+# OpenAPI diff kontrolü
+redocly diff contracts/openapi-main.yaml contracts/openapi.yaml --fail-on-diff
+
+# Tüm testleri çalıştır
+mvn clean test
+
+# Pact verification
+mvn test -Dtest=EventControllerPactTest
+```
+
 ### Docker Support
 
 ```bash

@@ -1,0 +1,213 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  JAVA_VERSION: "21"
+  MAVEN_OPTS: "-Xmx1024m"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: api_gateway
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: "temurin"
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Run tests
+        run: mvn clean test
+        env:
+          DATABASE_URL: jdbc:postgresql://localhost:5432/api_gateway
+          DATABASE_USERNAME: postgres
+          DATABASE_PASSWORD: postgres
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test-secret-key-for-ci
+          GOOGLE_CLIENT_ID: test-client-id
+
+      - name: Generate OpenAPI spec
+        run: |
+          mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8080" &
+          sleep 30
+          curl -o contracts/openapi.yaml http://localhost:8080/v3/api-docs
+          pkill -f spring-boot:run
+
+      - name: Upload OpenAPI spec
+        uses: actions/upload-artifact@v3
+        with:
+          name: openapi-spec
+          path: contracts/openapi.yaml
+
+  openapi-diff:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download OpenAPI spec from PR
+        uses: actions/download-artifact@v3
+        with:
+          name: openapi-spec
+          path: ./pr-spec
+
+      - name: Get main branch OpenAPI spec
+        run: |
+          git fetch origin main
+          git checkout main
+          mvn clean compile
+          mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8080" &
+          sleep 30
+          curl -o contracts/openapi-main.yaml http://localhost:8080/v3/api-docs
+          pkill -f spring-boot:run
+          git checkout ${{ github.head_ref }}
+
+      - name: Install openapi-diff
+        run: |
+          npm install -g @redocly/cli
+
+      - name: Run OpenAPI diff
+        run: |
+          redocly diff contracts/openapi-main.yaml pr-spec/openapi.yaml --fail-on-diff
+        continue-on-error: false
+
+  pact-verify:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: api_gateway
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: "temurin"
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Run Pact verification
+        run: mvn test -Dtest=EventControllerPactTest
+        env:
+          DATABASE_URL: jdbc:postgresql://localhost:5432/api_gateway
+          DATABASE_USERNAME: postgres
+          DATABASE_PASSWORD: postgres
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test-secret-key-for-ci
+          GOOGLE_CLIENT_ID: test-client-id
+          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+          pactbroker.url: ${{ secrets.PACT_BROKER_URL }}
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [build-and-test, openapi-diff, pact-verify]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: "temurin"
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build application
+        run: mvn clean package -DskipTests
+
+      - name: Generate OpenAPI spec for release
+        run: |
+          mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8080" &
+          sleep 30
+          curl -o contracts/openapi.yaml http://localhost:8080/v3/api-docs
+          pkill -f spring-boot:run
+
+      - name: Upload OpenAPI spec to release
+        uses: actions/upload-artifact@v3
+        with:
+          name: openapi-release-spec
+          path: contracts/openapi.yaml
