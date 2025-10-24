@@ -274,17 +274,13 @@ public class AuthController {
                                         schema = @Schema(implementation = Map.class)))
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
-    public ResponseEntity<Map<String, Object>> validateToken(HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> validateToken(HttpServletRequest request) {
         try {
             String authorizationHeader = request.getHeader("Authorization");
             
             if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
                 return ResponseEntity.status(401)
-                    .body(Map.of(
-                        "success", false,
-                        "valid", false,
-                        "error", "No valid Bearer token provided"
-                    ));
+                    .body(ApiResponse.error("No valid Bearer token provided"));
             }
             
             String token = authorizationHeader.substring(7);
@@ -296,57 +292,34 @@ public class AuthController {
                 
                 if (!isJwtValid) {
                     return ResponseEntity.status(401)
-                        .body(Map.of(
-                            "success", false,
-                            "valid", false,
-                            "error", "Token has expired"
-                        ));
+                        .body(ApiResponse.error("Token has expired"));
                 }
                 
                 // Step 2: Cross-check with database - verify user exists and is active
                 User user = authService.getUserByUsername(username);
                 if (user == null) {
                     return ResponseEntity.status(401)
-                        .body(Map.of(
-                            "success", false,
-                            "valid", false,
-                            "error", "User not found in database"
-                        ));
+                        .body(ApiResponse.error("User not found in database"));
                 }
                 
                 // Step 3: Check if user account is active
                 if (user.getIsActive() == null || !user.getIsActive()) {
                     return ResponseEntity.status(401)
-                        .body(Map.of(
-                            "success", false,
-                            "valid", false,
-                            "error", "User account is deactivated"
-                        ));
+                        .body(ApiResponse.error("User account is deactivated"));
                 }
                 
                 // Step 4: Optional - Check if token is in our refresh token blacklist
                 // This would require storing access tokens in Redis/DB for revocation
                 
-                return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "valid", true
-                ));
+                return ResponseEntity.ok(ApiResponse.success(Map.of("valid", true)));
                 
             } catch (Exception e) {
                 return ResponseEntity.status(401)
-                    .body(Map.of(
-                        "success", false,
-                        "valid", false,
-                        "error", "Invalid token format or signature"
-                    ));
+                    .body(ApiResponse.error("Invalid token format or signature"));
             }
         } catch (Exception e) {
             return ResponseEntity.status(500)
-                .body(Map.of(
-                    "success", false,
-                    "valid", false,
-                    "error", "Internal server error: " + e.getMessage()
-                ));
+                .body(ApiResponse.error("Internal server error: " + e.getMessage()));
         }
     }
 }

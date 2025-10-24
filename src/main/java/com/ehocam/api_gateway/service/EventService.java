@@ -8,13 +8,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.Cache;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.ehocam.api_gateway.cache.CacheWrapper;
 
 import com.ehocam.api_gateway.dto.EventDto;
 import com.ehocam.api_gateway.entity.Event;
@@ -31,15 +32,21 @@ public class EventService {
 
     @Autowired
     private EventRepository eventRepository;
-
+    
     @Autowired
     private EventLikeRepository eventLikeRepository;
-
+    
     @Autowired
     private EventReferenceRepository eventReferenceRepository;
-
+    
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private CacheManager cacheManager;
+    
+    @Autowired
+    private CacheWrapper cacheWrapper;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
@@ -90,12 +97,65 @@ public class EventService {
 
     /**
      * Get today's events with pagination and filters
+     * Using CacheWrapper for clean and type-safe cache operations
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "todayByCountry", key = "#country + ':' + T(java.time.LocalDate).now().getMonthValue() + '-' + T(java.time.LocalDate).now().getDayOfMonth() + ':' + #type + ':' + #page + ':' + #size + ':' + #language")
     public Page<EventDto.Response> getTodaysEvents(String language, String type, String country, 
-                                                   int page, int size, String sort, Long userId) {
-        return getEventsForDay(0, type, country, page, size, sort, userId, language);
+                                                    int page, int size, String sort, Long userId) {
+        // Generate cache key
+        String cacheKey = generateTodayCacheKey(country, type, page, size, language);
+        
+        // Use CacheWrapper for clean cache operations
+        return cacheWrapper.getOrCompute(
+            "todayByCountry", 
+            cacheKey, 
+            Page.class,
+            () -> getEventsForDay(0, type, country, page, size, sort, userId, language)
+        );
+    }
+    
+    /**
+     * Generate cache key for today's events
+     */
+    private String generateTodayCacheKey(String country, String type, int page, int size, String language) {
+        LocalDate today = LocalDate.now();
+        return String.format("%s:%s:%d-%d:%s:%d:%d:%s", 
+            country, type, today.getMonthValue(), today.getDayOfMonth(), 
+            page, size, language);
+    }
+    
+    /**
+     * Example of using addOrUpdate - CacheManager.michaco.net style
+     * Update event view count with cache-aware operations
+     */
+    public void incrementEventViewCount(Long eventId) {
+        String cacheKey = "event:views:" + eventId;
+        
+        // AddOrUpdate pattern - if key exists, increment, otherwise set to 1
+        cacheWrapper.addOrUpdate(
+            "eventStats", 
+            cacheKey, 
+            1, // Default value if key doesn't exist
+            currentCount -> currentCount + 1 // Update function if key exists
+        );
+    }
+    
+    /**
+     * Example of using getOrCompute for expensive operations
+     * Get trending events with cache-aware computation
+     */
+    public List<EventDto.Response> getTrendingEventsCached(String language, int limit, Long userId) {
+        String cacheKey = "trending:" + language + ":" + limit;
+        
+        return cacheWrapper.getOrCompute(
+            "trendingEvents",
+            cacheKey,
+            List.class,
+            () -> {
+                // Expensive operation - only runs on cache miss
+                return getTrendingEvents(language, 0, limit, userId).getContent();
+            }
+        );
     }
 
     /**
@@ -134,7 +194,6 @@ public class EventService {
      * Like an event
      */
     @Transactional
-    @CacheEvict(value = {"eventDetail", "todayByCountry", "trending24h"}, allEntries = true)
     public EventDto.LikeResponse likeEvent(Long eventId, Long userId) {
         // Check if already liked
         if (eventLikeRepository.existsByEventIdAndUserId(eventId, userId)) {
@@ -164,7 +223,6 @@ public class EventService {
      * Unlike an event
      */
     @Transactional
-    @CacheEvict(value = {"eventDetail", "todayByCountry", "trending24h"}, allEntries = true)
     public EventDto.LikeResponse unlikeEvent(Long eventId, Long userId) {
         // Check if liked
         if (!eventLikeRepository.existsByEventIdAndUserId(eventId, userId)) {
@@ -247,20 +305,34 @@ public class EventService {
      * Get a single event by ID
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "eventDetail", key = "#eventId + ':' + #language")
     public Optional<EventDto.Response> getEventById(Long eventId, String language, Long userId) {
         // Get user's preferred language
         String userLanguage = getUserLanguage(userId, language);
         
-        return eventRepository.findById(eventId)
+        // Use CacheWrapper for event detail caching
+        String cacheKey = "event:" + eventId + ":" + userLanguage;
+        
+        EventDto.Response cachedEvent = cacheWrapper.get("eventDetail", cacheKey, EventDto.Response.class);
+        if (cachedEvent != null) {
+            return Optional.of(cachedEvent);
+        }
+        
+        // Cache miss - fetch from database
+        Optional<EventDto.Response> result = eventRepository.findById(eventId)
                 .map(event -> convertToResponse(event, userLanguage));
+        
+        // Cache the result if present
+        if (result.isPresent()) {
+            cacheWrapper.put("eventDetail", cacheKey, result.get());
+        }
+        
+        return result;
     }
 
     /**
      * Get similar events based on type and country
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "similarEvents", key = "#eventId + ':' + #language")
     public List<EventDto.Response> getSimilarEvents(Long eventId, String language, Long userId, int limit) {
         // Get user's preferred language
         String userLanguage = getUserLanguage(userId, language);
@@ -291,7 +363,6 @@ public class EventService {
      * Get trending events in the last 24 hours
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "trending24h", key = "#language + ':' + #page + ':' + #size")
     public Page<EventDto.Response> getTrendingEvents(String language, int page, int size, Long userId) {
         // Get user's preferred language
         String userLanguage = getUserLanguage(userId, language);
@@ -313,7 +384,6 @@ public class EventService {
      * This method uses the new performance indexes for optimal query performance
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "todayByCountryOptimized", key = "#countryCode + ':' + T(java.time.LocalDate).now().getMonthValue() + '-' + T(java.time.LocalDate).now().getDayOfMonth() + ':' + #page + ':' + #size + ':' + #language")
     public Page<EventDto.Response> findTodayByCountry(String countryCode, String language, int page, int size, Long userId) {
         // Get user's preferred language
         String userLanguage = getUserLanguage(userId, language);
@@ -334,7 +404,6 @@ public class EventService {
      * This method uses the new performance indexes for optimal query performance
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "tomorrowByCountryOptimized", key = "#countryCode + ':' + T(java.time.LocalDate).now().plusDays(1).getMonthValue() + '-' + T(java.time.LocalDate).now().plusDays(1).getDayOfMonth() + ':' + #page + ':' + #size + ':' + #language")
     public Page<EventDto.Response> findTomorrowByCountry(String countryCode, String language, int page, int size, Long userId) {
         // Get user's preferred language
         String userLanguage = getUserLanguage(userId, language);
@@ -355,7 +424,6 @@ public class EventService {
      * This method uses the new performance indexes for optimal query performance
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "yesterdayByCountryOptimized", key = "#countryCode + ':' + T(java.time.LocalDate).now().minusDays(1).getMonthValue() + '-' + T(java.time.LocalDate).now().minusDays(1).getDayOfMonth() + ':' + #page + ':' + #size + ':' + #language")
     public Page<EventDto.Response> findYesterdayByCountry(String countryCode, String language, int page, int size, Long userId) {
         // Get user's preferred language
         String userLanguage = getUserLanguage(userId, language);
