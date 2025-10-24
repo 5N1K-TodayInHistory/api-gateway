@@ -371,8 +371,17 @@ mvn test -Dtest=EventControllerPactTest
 ### Docker Support
 
 ```bash
-# Docker ile çalıştır
+# Tüm servisleri çalıştır (PostgreSQL, Redis, Pact Broker)
 docker-compose up -d
+
+# Sadece veritabanı servisleri
+docker-compose up -d postgres redis
+
+# Pact Broker'ı ayrı ayrı çalıştır
+docker-compose up -d pact-broker
+
+# Servisleri durdur
+docker-compose down
 
 # Logları görüntüle
 docker-compose logs -f api-gateway

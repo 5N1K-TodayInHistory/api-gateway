@@ -13,6 +13,7 @@ env:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     services:
       postgres:
@@ -49,7 +50,7 @@ jobs:
           distribution: "temurin"
 
       - name: Cache Maven dependencies
-        uses: actions/cache@v3
+         uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -66,23 +67,26 @@ jobs:
           JWT_SECRET: test-secret-key-for-ci
           GOOGLE_CLIENT_ID: test-client-id
 
-      - name: Generate OpenAPI spec
-        run: |
-          mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8080" &
-          sleep 30
-          curl -o contracts/openapi.yaml http://localhost:8080/v3/api-docs
-          pkill -f spring-boot:run
+       - name: Generate OpenAPI spec
+         run: |
+           mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8080" &
+           APP_PID=$!
+           sleep 30
+           curl -f -o contracts/openapi.yaml http://localhost:8080/v3/api-docs || exit 1
+           kill $APP_PID 2>/dev/null || true
+           wait $APP_PID 2>/dev/null || true
 
-      - name: Upload OpenAPI spec
-        uses: actions/upload-artifact@v3
-        with:
-          name: openapi-spec
-          path: contracts/openapi.yaml
+       - name: Upload OpenAPI spec
+         uses: actions/upload-artifact@v4
+         with:
+           name: openapi-spec
+           path: contracts/openapi.yaml
 
   openapi-diff:
     runs-on: ubuntu-latest
     needs: build-and-test
     if: github.event_name == 'pull_request'
+    timeout-minutes: 10
 
     steps:
       - name: Checkout PR branch
@@ -90,22 +94,24 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download OpenAPI spec from PR
-        uses: actions/download-artifact@v3
-        with:
-          name: openapi-spec
-          path: ./pr-spec
+       - name: Download OpenAPI spec from PR
+         uses: actions/download-artifact@v4
+         with:
+           name: openapi-spec
+           path: ./pr-spec
 
-      - name: Get main branch OpenAPI spec
-        run: |
-          git fetch origin main
-          git checkout main
-          mvn clean compile
-          mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8080" &
-          sleep 30
-          curl -o contracts/openapi-main.yaml http://localhost:8080/v3/api-docs
-          pkill -f spring-boot:run
-          git checkout ${{ github.head_ref }}
+       - name: Get main branch OpenAPI spec
+         run: |
+           git fetch origin main
+           git checkout main
+           mvn clean compile
+           mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8080" &
+           APP_PID=$!
+           sleep 30
+           curl -f -o contracts/openapi-main.yaml http://localhost:8080/v3/api-docs || exit 1
+           kill $APP_PID 2>/dev/null || true
+           wait $APP_PID 2>/dev/null || true
+           git checkout ${{ github.head_ref }}
 
       - name: Install openapi-diff
         run: |
@@ -119,6 +125,7 @@ jobs:
   pact-verify:
     runs-on: ubuntu-latest
     needs: build-and-test
+    timeout-minutes: 15
 
     services:
       postgres:
@@ -144,6 +151,22 @@ jobs:
         ports:
           - 6379:6379
 
+      pact-broker:
+        image: pactfoundation/pact-broker:latest
+        env:
+          PACT_BROKER_DATABASE_URL: postgres://postgres:postgres@postgres:5432/api_gateway
+          PACT_BROKER_BASIC_AUTH_USERNAME: admin
+          PACT_BROKER_BASIC_AUTH_PASSWORD: admin
+          PACT_BROKER_PUBLIC_HEARTBEAT: true
+          PACT_BROKER_ALLOW_PUBLIC_READ: true
+        options: >-
+          --health-cmd "curl -f http://localhost:9292/ || exit 1"
+          --health-interval 30s
+          --health-timeout 10s
+          --health-retries 3
+        ports:
+          - 9292:9292
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -155,29 +178,31 @@ jobs:
           distribution: "temurin"
 
       - name: Cache Maven dependencies
-        uses: actions/cache@v3
+         uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Run Pact verification
-        run: mvn test -Dtest=EventControllerPactTest
-        env:
-          DATABASE_URL: jdbc:postgresql://localhost:5432/api_gateway
-          DATABASE_USERNAME: postgres
-          DATABASE_PASSWORD: postgres
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          JWT_SECRET: test-secret-key-for-ci
-          GOOGLE_CLIENT_ID: test-client-id
-          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
-          pactbroker.url: ${{ secrets.PACT_BROKER_URL }}
+       - name: Run Pact verification
+         run: mvn test -Dtest=EventControllerPactTest
+         env:
+           DATABASE_URL: jdbc:postgresql://localhost:5432/api_gateway
+           DATABASE_USERNAME: postgres
+           DATABASE_PASSWORD: postgres
+           REDIS_HOST: localhost
+           REDIS_PORT: 6379
+           JWT_SECRET: test-secret-key-for-ci
+           GOOGLE_CLIENT_ID: test-client-id
+           PACT_BROKER_TOKEN: admin
+           pactbroker.url: http://localhost:9292
+           PACT_BROKER_HAS_CONTRACTS: false  # Set to true when contracts are available
 
   build:
     runs-on: ubuntu-latest
     needs: [build-and-test, openapi-diff, pact-verify]
     if: github.ref == 'refs/heads/main'
+    timeout-minutes: 20
 
     steps:
       - name: Checkout code
@@ -190,7 +215,7 @@ jobs:
           distribution: "temurin"
 
       - name: Cache Maven dependencies
-        uses: actions/cache@v3
+         uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -199,15 +224,17 @@ jobs:
       - name: Build application
         run: mvn clean package -DskipTests
 
-      - name: Generate OpenAPI spec for release
-        run: |
-          mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8080" &
-          sleep 30
-          curl -o contracts/openapi.yaml http://localhost:8080/v3/api-docs
-          pkill -f spring-boot:run
+       - name: Generate OpenAPI spec for release
+         run: |
+           mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8080" &
+           APP_PID=$!
+           sleep 30
+           curl -f -o contracts/openapi.yaml http://localhost:8080/v3/api-docs || exit 1
+           kill $APP_PID 2>/dev/null || true
+           wait $APP_PID 2>/dev/null || true
 
-      - name: Upload OpenAPI spec to release
-        uses: actions/upload-artifact@v3
-        with:
-          name: openapi-release-spec
-          path: contracts/openapi.yaml
+       - name: Upload OpenAPI spec to release
+         uses: actions/upload-artifact@v4
+         with:
+           name: openapi-release-spec
+           path: contracts/openapi.yaml
