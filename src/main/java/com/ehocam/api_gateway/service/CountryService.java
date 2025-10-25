@@ -21,12 +21,30 @@ public class CountryService {
 
     /**
      * Get all countries with names in specified language
+     * Returns Global first, then other countries alphabetically
      */
     @Transactional(readOnly = true)
     @Cacheable(value = "countries", key = "#language")
     public List<CountryDto.Response> getAllCountries(String language) {
         List<Country> countries = countryRepository.findAllByOrderByCodeAsc();
-        return countries.stream()
+        
+        // Sort countries: Global first, then alphabetically by name
+        List<Country> sortedCountries = countries.stream()
+                .sorted((c1, c2) -> {
+                    // Global (ALL) should come first
+                    if ("ALL".equals(c1.getCode())) return -1;
+                    if ("ALL".equals(c2.getCode())) return 1;
+                    // Other countries sorted alphabetically by name
+                    String name1 = c1.getNameForLanguage(language);
+                    if (name1 == null) name1 = c1.getDefaultName();
+                    String name2 = c2.getNameForLanguage(language);
+                    if (name2 == null) name2 = c2.getDefaultName();
+                    return name1.compareToIgnoreCase(name2);
+                })
+                .collect(Collectors.toList());
+        
+        
+        return sortedCountries.stream()
                 .map(country -> convertToResponse(country, language))
                 .collect(Collectors.toList());
     }
