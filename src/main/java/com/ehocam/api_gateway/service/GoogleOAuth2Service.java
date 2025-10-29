@@ -29,17 +29,36 @@ public class GoogleOAuth2Service {
     @Autowired
     private UserRepository userRepository;
     
-    public User verifyIdTokenAndGetUser(String idToken) throws GeneralSecurityException, IOException {
+    public User verifyIdTokenAndGetUser(String idToken, String platform) throws GeneralSecurityException, IOException {
         // Validate input
         if (idToken == null || idToken.trim().isEmpty()) {
             throw new IllegalArgumentException("ID token is null or empty");
         }
         
-        // Check if client ID is configured
-        String clientId = googleOAuth2Config.getClientId();
-        if (clientId == null || clientId.equals("your-google-client-id")) {
-            logger.warn("Google Client ID is not configured. Using default for testing purposes.");
-            clientId = "test-client-id"; // For testing only
+        // Determine client ID by platform
+        if (platform == null || platform.trim().isEmpty()) {
+            throw new IllegalArgumentException("Missing platform. Provide X-Client-Platform header as web|ios|android");
+        }
+        String normalizedPlatform = platform.trim().toLowerCase();
+        if (!normalizedPlatform.equals("web") && !normalizedPlatform.equals("ios") && !normalizedPlatform.equals("android")) {
+            throw new IllegalArgumentException("Invalid platform. X-Client-Platform must be one of: web, ios, android");
+        }
+        String clientId;
+        switch (normalizedPlatform) {
+            case "ios":
+                clientId = googleOAuth2Config.getIosClientId();
+                break;
+            case "android":
+                clientId = googleOAuth2Config.getAndroidClientId();
+                break;
+            case "web":
+            default:
+                clientId = googleOAuth2Config.getWebClientId();
+                break;
+        }
+        
+        if (clientId == null || clientId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Google client ID is not configured for platform: " + normalizedPlatform);
         }
         
         // Check token format (basic JWT format check)
@@ -48,7 +67,7 @@ public class GoogleOAuth2Service {
             throw new IllegalArgumentException("Invalid JWT format. Expected 3 parts separated by dots.");
         }
         
-        logger.debug("Verifying Google ID token with client ID: {}", clientId);
+        logger.debug("Verifying Google ID token with client ID: {} (platform: {})", clientId, normalizedPlatform);
         
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
                 .setAudience(Collections.singletonList(clientId))

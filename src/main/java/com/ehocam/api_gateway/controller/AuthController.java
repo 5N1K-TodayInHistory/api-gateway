@@ -63,8 +63,21 @@ public class AuthController {
                         .body(ApiResponse.error("Invalid Google OAuth request: idToken is required"));
             }
 
+            // Determine client platform from header (X-Client-Platform: web|ios|android)
+            String platformHeader = httpRequest.getHeader("X-Client-Platform");
+            if (platformHeader == null || platformHeader.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("Missing X-Client-Platform header (expected: web|ios|android)"));
+            }
+            String normalized = platformHeader.trim().toLowerCase();
+            if (!("web".equals(normalized) || "ios".equals(normalized) || "android".equals(normalized))) {
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("Invalid X-Client-Platform header. Use one of: web, ios, android"));
+            }
+            String platform = normalized;
+
             // Verify Google ID token and get/create user
-            User user = googleOAuth2Service.verifyIdTokenAndGetUser(request.getIdToken());
+            User user = googleOAuth2Service.verifyIdTokenAndGetUser(request.getIdToken(), platform);
 
             // Get client information
             String ipAddress = getClientIpAddress(httpRequest);

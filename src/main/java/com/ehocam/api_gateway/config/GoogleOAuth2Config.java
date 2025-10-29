@@ -7,17 +7,35 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "google.oauth2")
 public class GoogleOAuth2Config {
     
-    private String clientId;
+    private String webClientId;
+    private String iosClientId;
+    private String androidClientId;
     private String issuer;
     private String jwksUri;
     
     // Getters and Setters
-    public String getClientId() {
-        return clientId;
+    public String getWebClientId() {
+        return webClientId;
     }
     
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
+    public void setWebClientId(String webClientId) {
+        this.webClientId = webClientId;
+    }
+    
+    public String getIosClientId() {
+        return iosClientId;
+    }
+    
+    public void setIosClientId(String iosClientId) {
+        this.iosClientId = iosClientId;
+    }
+    
+    public String getAndroidClientId() {
+        return androidClientId;
+    }
+    
+    public void setAndroidClientId(String androidClientId) {
+        this.androidClientId = androidClientId;
     }
     
     public String getIssuer() {
