@@ -10,7 +10,8 @@ The Google OAuth2 endpoint `/api/auth/oauth/google` now requires a platform-spec
 
 All requests to `/api/auth/oauth/google` must include the `X-Client-Platform` header with one of these values:
 
-- `web` - For web applications and backoffice
+- `web` - For public web clients
+- `backoffice` - For admin/backoffice applications
 - `ios` - For iOS mobile applications
 - `android` - For Android mobile applications
 
@@ -21,7 +22,7 @@ If the header is missing or invalid, the API will return:
 ```json
 {
   "success": false,
-  "message": "Missing X-Client-Platform header (expected: web|ios|android)"
+  "message": "Missing X-Client-Platform header (expected: web|backoffice|ios|android)"
 }
 ```
 
@@ -30,23 +31,23 @@ or
 ```json
 {
   "success": false,
-  "message": "Invalid X-Client-Platform header. Use one of: web, ios, android"
+  "message": "Invalid X-Client-Platform header. Use one of: web, backoffice, ios, android"
 }
 ```
 
 ## Implementation Examples
 
-### Web Application (React/Next.js/Vue/Angular)
+### Backoffice Application (React/Next.js/Vue/Angular)
 
 ```javascript
-// Example for web applications
+// Example for backoffice/admin applications
 const loginWithGoogle = async (idToken) => {
   try {
     const response = await fetch("/api/auth/oauth/google", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Client-Platform": "web", // Required header
+        "X-Client-Platform": "backoffice", // Required header
       },
       body: JSON.stringify({
         idToken: idToken,
@@ -206,23 +207,23 @@ const loginWithGoogle = async (idToken) => {
 
 1. **Valid requests** with correct headers:
 
-   - `X-Client-Platform: web`
+   - `X-Client-Platform: backoffice`
    - `X-Client-Platform: ios`
    - `X-Client-Platform: android`
 
 2. **Invalid requests** that should return 400:
    - Missing `X-Client-Platform` header
    - `X-Client-Platform: mobile` (invalid value)
-   - `X-Client-Platform: WEB` (case sensitive, should be lowercase)
+   - `X-Client-Platform: BACKOFFICE` (case sensitive, should be lowercase)
    - `X-Client-Platform: ` (empty value)
 
 ### cURL Test Examples
 
 ```bash
-# Valid web request
+# Valid backoffice request
 curl -X POST https://your-api-domain.com/api/auth/oauth/google \
   -H "Content-Type: application/json" \
-  -H "X-Client-Platform: web" \
+  -H "X-Client-Platform: backoffice" \
   -d '{"idToken": "your-google-id-token"}'
 
 # Invalid request (missing header)

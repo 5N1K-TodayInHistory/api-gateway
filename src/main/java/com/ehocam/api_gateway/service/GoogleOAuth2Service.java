@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.ehocam.api_gateway.config.GoogleOAuth2Config;
 import com.ehocam.api_gateway.entity.User;
+import com.ehocam.api_gateway.entity.UserRole;
 import com.ehocam.api_gateway.repository.UserRepository;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -37,23 +38,26 @@ public class GoogleOAuth2Service {
         
         // Determine client ID by platform
         if (platform == null || platform.trim().isEmpty()) {
-            throw new IllegalArgumentException("Missing platform. Provide X-Client-Platform header as web|ios|android");
+            throw new IllegalArgumentException("Missing platform. Provide X-Client-Platform header as web|backoffice|ios|android");
         }
         String normalizedPlatform = platform.trim().toLowerCase();
-        if (!normalizedPlatform.equals("web") && !normalizedPlatform.equals("ios") && !normalizedPlatform.equals("android")) {
-            throw new IllegalArgumentException("Invalid platform. X-Client-Platform must be one of: web, ios, android");
+        if (!normalizedPlatform.equals("web") && !normalizedPlatform.equals("backoffice") && !normalizedPlatform.equals("ios") && !normalizedPlatform.equals("android")) {
+            throw new IllegalArgumentException("Invalid platform. X-Client-Platform must be one of: web, backoffice, ios, android");
         }
         String clientId;
         switch (normalizedPlatform) {
+            case "web":
+                clientId = googleOAuth2Config.getWebClientId();
+                break;
             case "ios":
                 clientId = googleOAuth2Config.getIosClientId();
                 break;
             case "android":
                 clientId = googleOAuth2Config.getAndroidClientId();
                 break;
-            case "web":
+            case "backoffice":
             default:
-                clientId = googleOAuth2Config.getWebClientId();
+                clientId = googleOAuth2Config.getBackofficeClientId();
                 break;
         }
         
@@ -129,6 +133,14 @@ public class GoogleOAuth2Service {
             newUser.setAvatarUrl(picture);
             newUser.setAuthProvider(User.AuthProvider.GOOGLE);
             newUser.setUsername(email); // Use email as username for Google users
+            
+            // Assign admin role to specific email
+            if ("cagdaskarademir@gmail.com".equals(email)) {
+                newUser.setRole(UserRole.ADMIN);
+                logger.info("Assigned ADMIN role to user: {}", email);
+            } else {
+                newUser.setRole(UserRole.USER);
+            }
             
             return userRepository.save(newUser);
         }

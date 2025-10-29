@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 public class GoogleOAuth2Config {
     
     private String webClientId;
+    private String backofficeClientId;
     private String iosClientId;
     private String androidClientId;
     private String issuer;
@@ -20,6 +21,14 @@ public class GoogleOAuth2Config {
     
     public void setWebClientId(String webClientId) {
         this.webClientId = webClientId;
+    }
+    
+    public String getBackofficeClientId() {
+        return backofficeClientId;
+    }
+    
+    public void setBackofficeClientId(String backofficeClientId) {
+        this.backofficeClientId = backofficeClientId;
     }
     
     public String getIosClientId() {

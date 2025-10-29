@@ -9,14 +9,15 @@ The `/api/auth/oauth/google` endpoint now requires a **mandatory header** to ide
 Add `X-Client-Platform` header to all Google OAuth requests:
 
 ```http
-X-Client-Platform: web    # For web/backoffice
-X-Client-Platform: ios    # For iOS apps
-X-Client-Platform: android # For Android apps
+X-Client-Platform: web        # For public web
+X-Client-Platform: backoffice # For admin/backoffice
+X-Client-Platform: ios        # For iOS apps
+X-Client-Platform: android    # For Android apps
 ```
 
 ## Quick Implementation
 
-### Web/React/Vue/Angular
+### Web (React/Vue/Angular)
 
 ```javascript
 fetch("/api/auth/oauth/google", {
@@ -66,7 +67,7 @@ If header is missing/invalid, API returns 400:
 ```json
 {
   "success": false,
-  "message": "Missing X-Client-Platform header (expected: web|ios|android)"
+  "message": "Missing X-Client-Platform header (expected: web|backoffice|ios|android)"
 }
 ```
 
@@ -75,7 +76,7 @@ If header is missing/invalid, API returns 400:
 ```bash
 # Test valid request
 curl -X POST /api/auth/oauth/google \
-  -H "X-Client-Platform: web" \
+  -H "X-Client-Platform: backoffice" \
   -d '{"idToken":"..."}'
 
 # Test invalid request (should return 400)
@@ -86,7 +87,7 @@ curl -X POST /api/auth/oauth/google \
 ## ⚠️ Important
 
 - Header is **mandatory** - no fallback
-- Values must be **lowercase**: `web`, `ios`, `android`
+- Values must be **lowercase**: `backoffice`, `ios`, `android`
 - **All existing requests will fail** without this header
 
 ## Deadline

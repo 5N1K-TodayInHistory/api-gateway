@@ -63,16 +63,16 @@ public class AuthController {
                         .body(ApiResponse.error("Invalid Google OAuth request: idToken is required"));
             }
 
-            // Determine client platform from header (X-Client-Platform: web|ios|android)
+            // Determine client platform from header (X-Client-Platform: web|backoffice|ios|android)
             String platformHeader = httpRequest.getHeader("X-Client-Platform");
             if (platformHeader == null || platformHeader.trim().isEmpty()) {
                 return ResponseEntity.badRequest()
-                        .body(ApiResponse.error("Missing X-Client-Platform header (expected: web|ios|android)"));
+                        .body(ApiResponse.error("Missing X-Client-Platform header (expected: web|backoffice|ios|android)"));
             }
             String normalized = platformHeader.trim().toLowerCase();
-            if (!("web".equals(normalized) || "ios".equals(normalized) || "android".equals(normalized))) {
+            if (!("web".equals(normalized) || "backoffice".equals(normalized) || "ios".equals(normalized) || "android".equals(normalized))) {
                 return ResponseEntity.badRequest()
-                        .body(ApiResponse.error("Invalid X-Client-Platform header. Use one of: web, ios, android"));
+                        .body(ApiResponse.error("Invalid X-Client-Platform header. Use one of: web, backoffice, ios, android"));
             }
             String platform = normalized;
 
