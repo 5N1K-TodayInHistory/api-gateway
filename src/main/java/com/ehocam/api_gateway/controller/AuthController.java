@@ -63,27 +63,23 @@ public class AuthController {
                         .body(ApiResponse.error("Invalid Google OAuth request: idToken is required"));
             }
 
-            // Determine client platform from header (X-Client-Platform: web|backoffice|ios|android)
+            // Determine client platform from header (X-Client-Platform: web|ios|android)
             String platformHeader = httpRequest.getHeader("X-Client-Platform");
             if (platformHeader == null || platformHeader.trim().isEmpty()) {
                 return ResponseEntity.badRequest()
-                        .body(ApiResponse.error("Missing X-Client-Platform header (expected: web|backoffice|ios|android)"));
+                        .body(ApiResponse.error("Missing X-Client-Platform header (expected: web|ios|android)"));
             }
             String normalized = platformHeader.trim().toLowerCase();
-            if (!("web".equals(normalized) || "backoffice".equals(normalized) || "ios".equals(normalized) || "android".equals(normalized))) {
+            if (!("web".equals(normalized) || "ios".equals(normalized) || "android".equals(normalized))) {
                 return ResponseEntity.badRequest()
-                        .body(ApiResponse.error("Invalid X-Client-Platform header. Use one of: web, backoffice, ios, android"));
+                        .body(ApiResponse.error("Invalid X-Client-Platform header. Use one of: web, ios, android"));
             }
             String platform = normalized;
 
             // Verify Google ID token and get/create user
             User user = googleOAuth2Service.verifyIdTokenAndGetUser(request.getIdToken(), platform);
 
-            // Enforce ADMIN-only for backoffice platform
-            if ("backoffice".equals(platform) && (user.getRole() == null || user.getRole() != com.ehocam.api_gateway.entity.UserRole.ADMIN)) {
-                return ResponseEntity.status(403)
-                    .body(ApiResponse.error("Only ADMIN users can access the backoffice"));
-            }
+            // Backoffice platform is not supported in this gateway
 
             // Get client information
             String ipAddress = getClientIpAddress(httpRequest);

@@ -38,11 +38,11 @@ public class GoogleOAuth2Service {
         
         // Determine client ID by platform
         if (platform == null || platform.trim().isEmpty()) {
-            throw new IllegalArgumentException("Missing platform. Provide X-Client-Platform header as web|backoffice|ios|android");
+            throw new IllegalArgumentException("Missing platform. Provide X-Client-Platform header as web|ios|android");
         }
         String normalizedPlatform = platform.trim().toLowerCase();
-        if (!normalizedPlatform.equals("web") && !normalizedPlatform.equals("backoffice") && !normalizedPlatform.equals("ios") && !normalizedPlatform.equals("android")) {
-            throw new IllegalArgumentException("Invalid platform. X-Client-Platform must be one of: web, backoffice, ios, android");
+        if (!normalizedPlatform.equals("web") && !normalizedPlatform.equals("ios") && !normalizedPlatform.equals("android")) {
+            throw new IllegalArgumentException("Invalid platform. X-Client-Platform must be one of: web, ios, android");
         }
         String clientId;
         switch (normalizedPlatform) {
@@ -55,9 +55,8 @@ public class GoogleOAuth2Service {
             case "android":
                 clientId = googleOAuth2Config.getAndroidClientId();
                 break;
-            case "backoffice":
             default:
-                clientId = googleOAuth2Config.getBackofficeClientId();
+                clientId = googleOAuth2Config.getWebClientId();
                 break;
         }
         
