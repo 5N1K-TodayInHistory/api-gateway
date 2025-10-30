@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.ehocam.api_gateway.entity.User;
+import com.ehocam.api_gateway.entity.UserRole;
 import com.ehocam.api_gateway.repository.UserRepository;
 
 @Service
@@ -37,8 +38,12 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         @Override
         public Collection<? extends GrantedAuthority> getAuthorities() {
-            // All users have USER role since we removed role system
-            return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+            // Return user's actual role
+            UserRole role = user.getRole();
+            if (role == null) {
+                role = UserRole.USER; // Default role
+            }
+            return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
         }
 
         @Override
