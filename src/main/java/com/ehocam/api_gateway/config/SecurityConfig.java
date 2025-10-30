@@ -73,10 +73,8 @@ public class SecurityConfig {
                 .requestMatchers("/api-docs/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/error").permitAll()
-                
-                // Admin endpoints - require ADMIN role
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                
+                // Admin endpoints removed; managed by backoffice-api-gateway
+
                         // Authenticated endpoints
                 .requestMatchers("/api/events/**").authenticated()
                 .requestMatchers("/api/events/{id}/like").authenticated()
