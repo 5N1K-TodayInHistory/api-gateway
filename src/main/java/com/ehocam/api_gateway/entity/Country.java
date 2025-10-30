@@ -40,8 +40,8 @@ public class Country {
     private Map<String, String> name; // Multilingual names: {"en": "Turkey", "tr": "Türkiye"}
 
     @NotBlank
-    @Size(max = 10)
-    @Column(nullable = false, length = 10)
+    @Size(max = 500)
+    @Column(name = "flag_url", nullable = false, length = 500)
     private String flag; // Flag emoji or URL
 
     @CreationTimestamp

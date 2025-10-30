@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.ehocam.api_gateway.config.GoogleOAuth2Config;
 import com.ehocam.api_gateway.entity.User;
+import com.ehocam.api_gateway.entity.UserRole;
 import com.ehocam.api_gateway.repository.UserRepository;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -29,17 +30,38 @@ public class GoogleOAuth2Service {
     @Autowired
     private UserRepository userRepository;
     
-    public User verifyIdTokenAndGetUser(String idToken) throws GeneralSecurityException, IOException {
+    public User verifyIdTokenAndGetUser(String idToken, String platform) throws GeneralSecurityException, IOException {
         // Validate input
         if (idToken == null || idToken.trim().isEmpty()) {
             throw new IllegalArgumentException("ID token is null or empty");
         }
         
-        // Check if client ID is configured
-        String clientId = googleOAuth2Config.getClientId();
-        if (clientId == null || clientId.equals("your-google-client-id")) {
-            logger.warn("Google Client ID is not configured. Using default for testing purposes.");
-            clientId = "test-client-id"; // For testing only
+        // Determine client ID by platform
+        if (platform == null || platform.trim().isEmpty()) {
+            throw new IllegalArgumentException("Missing platform. Provide X-Client-Platform header as web|ios|android");
+        }
+        String normalizedPlatform = platform.trim().toLowerCase();
+        if (!normalizedPlatform.equals("web") && !normalizedPlatform.equals("ios") && !normalizedPlatform.equals("android")) {
+            throw new IllegalArgumentException("Invalid platform. X-Client-Platform must be one of: web, ios, android");
+        }
+        String clientId;
+        switch (normalizedPlatform) {
+            case "web":
+                clientId = googleOAuth2Config.getWebClientId();
+                break;
+            case "ios":
+                clientId = googleOAuth2Config.getIosClientId();
+                break;
+            case "android":
+                clientId = googleOAuth2Config.getAndroidClientId();
+                break;
+            default:
+                clientId = googleOAuth2Config.getWebClientId();
+                break;
+        }
+        
+        if (clientId == null || clientId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Google client ID is not configured for platform: " + normalizedPlatform);
         }
         
         // Check token format (basic JWT format check)
@@ -48,7 +70,7 @@ public class GoogleOAuth2Service {
             throw new IllegalArgumentException("Invalid JWT format. Expected 3 parts separated by dots.");
         }
         
-        logger.debug("Verifying Google ID token with client ID: {}", clientId);
+        logger.debug("Verifying Google ID token with client ID: {} (platform: {})", clientId, normalizedPlatform);
         
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
                 .setAudience(Collections.singletonList(clientId))
@@ -110,6 +132,14 @@ public class GoogleOAuth2Service {
             newUser.setAvatarUrl(picture);
             newUser.setAuthProvider(User.AuthProvider.GOOGLE);
             newUser.setUsername(email); // Use email as username for Google users
+            
+            // Assign admin role to specific email
+            if ("cagdaskarademir@gmail.com".equals(email)) {
+                newUser.setRole(UserRole.ADMIN);
+                logger.info("Assigned ADMIN role to user: {}", email);
+            } else {
+                newUser.setRole(UserRole.USER);
+            }
             
             return userRepository.save(newUser);
         }

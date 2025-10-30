@@ -43,6 +43,11 @@ public class User {
     @Column(name = "auth_provider")
     private AuthProvider authProvider;
 
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    @Column(name = "role")
+    private UserRole role = UserRole.USER;
+
     @Column(name = "password_hash")
     private String passwordHash;
 
@@ -111,6 +116,14 @@ public class User {
 
     public void setAuthProvider(AuthProvider authProvider) {
         this.authProvider = authProvider;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 
     public String getPasswordHash() {
