@@ -278,12 +278,16 @@ INSERT INTO languages (code, name) VALUES
 
 -- Insert event types
 INSERT INTO event_types (code, name) VALUES
-('politics', '{"en": "Politics", "tr": "Siyaset", "es": "Política", "de": "Politik", "fr": "Politique", "ar": "السياسة"}'),
-('science', '{"en": "Science", "tr": "Bilim", "es": "Ciencia", "de": "Wissenschaft", "fr": "Science", "ar": "العلوم"}'),
-('sports', '{"en": "Sports", "tr": "Spor", "es": "Deportes", "de": "Sport", "fr": "Sport", "ar": "الرياضة"}'),
-('history', '{"en": "History", "tr": "Tarih", "es": "Historia", "de": "Geschichte", "fr": "Histoire", "ar": "التاريخ"}'),
-('entertainment', '{"en": "Entertainment", "tr": "Eğlence", "es": "Entretenimiento", "de": "Unterhaltung", "fr": "Divertissement", "ar": "الترفيه"}'),
-('all', '{"en": "All", "tr": "Tümü", "es": "Todos", "de": "Alle", "fr": "Tous", "ar": "الكل"}');
+('politics', '{"en": "Politics & Power Shifts", "tr": "Siyaset ve İktidar Değişimleri", "es": "Política y Cambios de Poder", "de": "Politik und Machtverschiebungen", "fr": "Politique et Changements de Pouvoir", "ar": "السياسة وتحولات القوة"}'),
+('discovery', '{"en": "Discovery & Innovation", "tr": "Keşif ve İnovasyon", "es": "Descubrimiento e Innovación", "de": "Entdeckung und Innovation", "fr": "Découverte et Innovation", "ar": "الاكتشاف والابتكار"}'),
+('conflict', '{"en": "Wars, Revolts & Crises", "tr": "Savaşlar, İsyanlar ve Krizler", "es": "Guerras, Revueltas y Crisis", "de": "Kriege, Revolten und Krisen", "fr": "Guerres, Révoltes et Crises", "ar": "الحروب والثورات والأزمات"}'),
+('culture', '{"en": "Art, Media & Society", "tr": "Sanat, Medya ve Toplum", "es": "Arte, Medios y Sociedad", "de": "Kunst, Medien und Gesellschaft", "fr": "Art, Médias et Société", "ar": "الفن والإعلام والمجتمع"}'),
+('economy', '{"en": "Economy & Industry", "tr": "Ekonomi ve Sanayi", "es": "Economía e Industria", "de": "Wirtschaft und Industrie", "fr": "Économie et Industrie", "ar": "الاقتصاد والصناعة"}'),
+('space', '{"en": "Space & Exploration", "tr": "Uzay ve Keşif", "es": "Espacio y Exploración", "de": "Raum und Exploration", "fr": "Espace et Exploration", "ar": "الفضاء والاستكشاف"}'),
+('tragedy', '{"en": "Disasters & Human Loss", "tr": "Felaketler ve İnsan Kaybı", "es": "Desastres y Pérdidas Humanas", "de": "Katastrophen und Menschenverluste", "fr": "Catastrophes et Pertes Humaines", "ar": "الكوارث والخسائر البشرية"}'),
+('milestone', '{"en": "Milestones & Anniversaries", "tr": "Dönüm Noktaları ve Yıldönümleri", "es": "Hitos y Aniversarios", "de": "Meilensteine und Jahrestage", "fr": "Jalons et Anniversaires", "ar": "المعالم والذكرى السنوية"}'),
+('justice', '{"en": "Justice & Rights", "tr": "Adalet ve Haklar", "es": "Justicia y Derechos", "de": "Gerechtigkeit und Rechte", "fr": "Justice et Droits", "ar": "العدالة والحقوق"}'),
+('innovation', '{"en": "Technology & Future", "tr": "Teknoloji ve Gelecek", "es": "Tecnología y Futuro", "de": "Technologie und Zukunft", "fr": "Technologie et Avenir", "ar": "التكنولوجيا والمستقبل"}');
 
 -- Insert sample events
 INSERT INTO events (title, description, content, date, type, country, image_url, video_urls, audio_urls, likes_count, comments_count) VALUES
@@ -291,8 +295,8 @@ INSERT INTO events (title, description, content, date, type, country, image_url,
     '{"en": "International Trade Agreement", "tr": "Uluslararası Ticaret Anlaşması", "es": "Acuerdo Comercial Internacional"}',
     '{"en": "New trade agreement signed between multiple countries.", "tr": "Birden fazla ülke arasında yeni ticaret anlaşması imzalandı.", "es": "Nuevo acuerdo comercial firmado entre múltiples países."}',
     '{"en": "A comprehensive trade agreement has been signed between several countries, promising to boost economic cooperation and reduce trade barriers.", "tr": "Birkaç ülke arasında kapsamlı bir ticaret anlaşması imzalandı ve bu anlaşma ekonomik işbirliğini artırmayı ve ticaret engellerini azaltmayı vaat ediyor.", "es": "Se ha firmado un acuerdo comercial integral entre varios países, prometiendo impulsar la cooperación económica y reducir las barreras comerciales."}',
-    NOW(),
-    'politics',
+    NOW() + INTERVAL '1 day',
+    'economy',
     'TR',
     'https://picsum.photos/400/300?random=1',
     '[]'::jsonb,
@@ -304,8 +308,8 @@ INSERT INTO events (title, description, content, date, type, country, image_url,
     '{"en": "Scientific Discovery", "tr": "Bilimsel Keşif", "es": "Descubrimiento Científico"}',
     '{"en": "Breakthrough in renewable energy technology.", "tr": "Yenilenebilir enerji teknolojisinde çığır açan gelişme.", "es": "Avance en tecnología de energía renovable."}',
     '{"en": "Scientists have made a significant breakthrough in renewable energy technology that could revolutionize how we generate clean power.", "tr": "Bilim insanları, temiz enerji üretme şeklimizi devrim yaratabilecek yenilenebilir enerji teknolojisinde önemli bir atılım yaptı.", "es": "Los científicos han logrado un avance significativo en tecnología de energía renovable que podría revolucionar cómo generamos energía limpia."}',
-    NOW() - INTERVAL '1 day',
-    'science',
+    NOW(),
+    'discovery',
     'US',
     'https://picsum.photos/400/300?random=2',
     '["https://example.com/video1.mp4"]'::jsonb,
@@ -317,8 +321,8 @@ INSERT INTO events (title, description, content, date, type, country, image_url,
     '{"en": "Championship Final", "tr": "Şampiyonluk Finali", "es": "Final del Campeonato"}',
     '{"en": "Exciting championship final match results.", "tr": "Heyecan verici şampiyonluk final maçı sonuçları.", "es": "Resultados emocionantes del partido final del campeonato."}',
     '{"en": "The championship final delivered an exciting match with unexpected results that will be remembered for years to come.", "tr": "Şampiyonluk finali, yıllarca hatırlanacak beklenmedik sonuçlarla heyecan verici bir maç sundu.", "es": "La final del campeonato ofreció un partido emocionante con resultados inesperados que serán recordados por años."}',
-    NOW() - INTERVAL '2 days',
-    'sports',
+    NOW() - INTERVAL '1 day',
+    'conflict',
     'ALL',
     'https://picsum.photos/400/300?random=3',
     '["https://example.com/sports-video.mp4"]'::jsonb,
@@ -330,8 +334,8 @@ INSERT INTO events (title, description, content, date, type, country, image_url,
     '{"en": "Historical Discovery", "tr": "Tarihi Keşif", "es": "Descubrimiento Histórico"}',
     '{"en": "Ancient artifacts discovered in archaeological site.", "tr": "Arkeolojik alanda antik eserler keşfedildi.", "es": "Artefactos antiguos descubiertos en sitio arqueológico."}',
     '{"en": "Archaeologists have uncovered remarkable ancient artifacts that provide new insights into early civilizations.", "tr": "Arkeologlar, erken medeniyetler hakkında yeni bilgiler sağlayan dikkat çekici antik eserler ortaya çıkardı.", "es": "Los arqueólogos han descubierto artefactos antiguos notables que proporcionan nuevas perspectivas sobre las civilizaciones tempranas."}',
-    NOW() - INTERVAL '3 days',
-    'history',
+    NOW(),
+    'discovery',
     'EG',
     'https://picsum.photos/400/300?random=4',
     '[]'::jsonb,
@@ -343,8 +347,8 @@ INSERT INTO events (title, description, content, date, type, country, image_url,
     '{"en": "Entertainment News", "tr": "Eğlence Haberleri", "es": "Noticias de Entretenimiento"}',
     '{"en": "Major entertainment industry announcement.", "tr": "Büyük eğlence endüstrisi duyurusu.", "es": "Importante anuncio de la industria del entretenimiento."}',
     '{"en": "The entertainment industry has announced exciting new projects and collaborations that will shape the future of media.", "tr": "Eğlence endüstrisi, medyanın geleceğini şekillendirecek heyecan verici yeni projeler ve işbirlikleri duyurdu.", "es": "La industria del entretenimiento ha anunciado emocionantes nuevos proyectos y colaboraciones que darán forma al futuro de los medios."}',
-    NOW() - INTERVAL '4 days',
-    'entertainment',
+    NOW() + INTERVAL '1 day',
+    'culture',
     'US',
     'https://picsum.photos/400/300?random=5',
     '["https://example.com/entertainment-video.mp4"]'::jsonb,
@@ -396,12 +400,12 @@ COMMENT ON COLUMN countries.name IS 'Multilingual country names stored as JSONB'
 COMMENT ON COLUMN countries.flag IS 'Flag emoji or URL for the country';
 COMMENT ON COLUMN languages.code IS 'ISO 639-1 language code (e.g., "en", "tr", "es")';
 COMMENT ON COLUMN languages.name IS 'Multilingual language names stored as JSONB';
-COMMENT ON COLUMN event_types.code IS 'Event type code (e.g., "politics", "science", "sports")';
+COMMENT ON COLUMN event_types.code IS 'Event type code (e.g., "politics", "discovery", "conflict", "culture", "economy", "space", "tragedy", "milestone", "justice", "innovation")';
 COMMENT ON COLUMN event_types.name IS 'Multilingual event type names stored as JSONB';
 COMMENT ON COLUMN events.title IS 'Multilingual event titles stored as JSONB';
 COMMENT ON COLUMN events.description IS 'Multilingual event descriptions stored as JSONB';
 COMMENT ON COLUMN events.content IS 'Multilingual event content stored as JSONB';
-COMMENT ON COLUMN events.type IS 'Event type code (politics, science, sports, history, entertainment, all)';
+COMMENT ON COLUMN events.type IS 'Event type code (politics, discovery, conflict, culture, economy, space, tragedy, milestone, justice, innovation)';
 COMMENT ON COLUMN events.country IS 'Country code (TR, US, ALL, etc.)';
 COMMENT ON COLUMN events.image_url IS 'Main image URL for the event';
 COMMENT ON COLUMN events.video_urls IS 'Array of video URLs stored as JSONB';
