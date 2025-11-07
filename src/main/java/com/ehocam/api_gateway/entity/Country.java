@@ -44,6 +44,10 @@ public class Country {
     @Column(name = "flag_url", nullable = false, length = 500)
     private String flag; // Flag emoji or URL
 
+    @NotNull
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -59,6 +63,7 @@ public class Country {
         this.code = code;
         this.name = name;
         this.flag = flag;
+        this.isActive = true;
     }
 
     // Getters and Setters
@@ -92,6 +97,14 @@ public class Country {
 
     public void setFlag(String flag) {
         this.flag = flag;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -133,6 +146,7 @@ public class Country {
                 ", code='" + code + '\'' +
                 ", name=" + name +
                 ", flag='" + flag + '\'' +
+                ", isActive=" + isActive +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
