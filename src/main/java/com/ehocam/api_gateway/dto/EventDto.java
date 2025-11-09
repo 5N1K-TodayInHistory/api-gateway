@@ -31,8 +31,8 @@ public class EventDto {
         @JsonProperty("country")
         private String country;
 
-        @JsonProperty("imageUrl")
-        private String imageUrl;
+        @JsonProperty("images")
+        private List<EventImageDto> images;
 
         @JsonProperty("videoUrls")
         private List<String> videoUrls;
@@ -53,9 +53,9 @@ public class EventDto {
         public Response() {}
 
         public Response(String id, String title, String description, String content, String date,
-                       String type, String country, String imageUrl, List<String> videoUrls,
-                       List<String> audioUrls, List<ReferenceDto> references, Integer likes,
-                       Integer comments) {
+                       String type, String country, List<EventImageDto> images,
+                       List<String> videoUrls, List<String> audioUrls, List<ReferenceDto> references, 
+                       Integer likes, Integer comments) {
             this.id = id;
             this.title = title;
             this.description = description;
@@ -63,7 +63,7 @@ public class EventDto {
             this.date = date;
             this.type = type;
             this.country = country;
-            this.imageUrl = imageUrl;
+            this.images = images;
             this.videoUrls = videoUrls;
             this.audioUrls = audioUrls;
             this.references = references;
@@ -128,12 +128,12 @@ public class EventDto {
             this.country = country;
         }
 
-        public String getImageUrl() {
-            return imageUrl;
+        public List<EventImageDto> getImages() {
+            return images;
         }
 
-        public void setImageUrl(String imageUrl) {
-            this.imageUrl = imageUrl;
+        public void setImages(List<EventImageDto> images) {
+            this.images = images;
         }
 
         public List<String> getVideoUrls() {
@@ -186,12 +186,66 @@ public class EventDto {
                     ", date='" + date + '\'' +
                     ", type='" + type + '\'' +
                     ", country='" + country + '\'' +
-                    ", imageUrl='" + imageUrl + '\'' +
+                    ", images=" + images +
                     ", videoUrls=" + videoUrls +
                     ", audioUrls=" + audioUrls +
                     ", references=" + references +
                     ", likes=" + likes +
                     ", comments=" + comments +
+                    '}';
+        }
+    }
+
+    public static class EventImageDto {
+        @JsonProperty("type")
+        private String type; // "medium", "large", "large2x"
+
+        @JsonProperty("image_url")
+        private String image_url;
+
+        @JsonProperty("is_default")
+        private Boolean is_default;
+
+        // Constructors
+        public EventImageDto() {}
+
+        public EventImageDto(String type, String image_url, Boolean is_default) {
+            this.type = type;
+            this.image_url = image_url;
+            this.is_default = is_default;
+        }
+
+        // Getters and Setters
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public String getImage_url() {
+            return image_url;
+        }
+
+        public void setImage_url(String image_url) {
+            this.image_url = image_url;
+        }
+
+        public Boolean getIs_default() {
+            return is_default;
+        }
+
+        public void setIs_default(Boolean is_default) {
+            this.is_default = is_default;
+        }
+
+        @Override
+        public String toString() {
+            return "EventImageDto{" +
+                    "type='" + type + '\'' +
+                    ", image_url='" + image_url + '\'' +
+                    ", is_default=" + is_default +
                     '}';
         }
     }

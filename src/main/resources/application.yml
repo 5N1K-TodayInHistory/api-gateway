@@ -47,6 +47,14 @@ spring:
           max-idle: 8
           min-idle: 0
 
+  # Cache Configuration
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000 # Default 5 minutes in milliseconds
+      cache-null-values: false
+      enable-statistics: true
+
 # JWT Configuration
 jwt:
   secret: ${JWT_SECRET:RHM9dVjyEn6NGTEW3KUobcdmuRVxEngj}
@@ -56,9 +64,23 @@ jwt:
 # Google OAuth2 Configuration
 google:
   oauth2:
-    client-id: ${GOOGLE_CLIENT_ID:373844583085-h96gpiof3727tjh9tm9dvl4bkml0sqtm.apps.googleusercontent.com}
+    web-client-id: ${GOOGLE_WEB_CLIENT_ID:}
+    backoffice-client-id: ${GOOGLE_BACKOFFICE_CLIENT_ID:373844583085-prm9ncrr063m6f4n6kvs0rsr47vluipp.apps.googleusercontent.com}
+    ios-client-id: ${GOOGLE_IOS_CLIENT_ID:373844583085-h96gpiof3727tjh9tm9dvl4bkml0sqtm.apps.googleusercontent.com}
+    android-client-id: ${GOOGLE_ANDROID_CLIENT_ID:}
     issuer: https://accounts.google.com
     jwks-uri: https://www.googleapis.com/oauth2/v3/certs
+
+# Cache TTL Configuration (in seconds)
+cache:
+  ttl:
+    todayByCountry: 600 # 10 minutes
+    eventDetail: 1800 # 30 minutes
+    similarEvents: 3600 # 60 minutes
+    trending24h: 300 # 5 minutes
+    supportedLocales: 21600 # 6 hours
+    countries: 21600 # 6 hours
+    languages: 21600 # 6 hours
 
 # Rate Limiting Configuration
 rate-limit:
@@ -68,7 +90,7 @@ rate-limit:
 
 # CORS Configuration
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,https://api.5n1k.io}
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,https://api.5n1k.io,https://dev.api.5n1k.io}
   allowed-methods:
     - GET
     - POST
@@ -82,8 +104,6 @@ cors:
 # Server Configuration
 server:
   port: ${SERVER_PORT:8080}
-  servlet:
-    context-path: /api
 
 # Logging Configuration
 logging:
@@ -97,13 +117,23 @@ logging:
 # OpenAPI/Swagger Configuration
 springdoc:
   api-docs:
-    path: /api-docs
+    path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
     operationsSorter: method
   show-actuator: true
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
+  info:
+    title: 5N1K API Gateway
+    version: @project.version@
+    description: 5N1K API Gateway with multilingual support and event performance optimization
+    contact:
+      name: 5N1K Team
+      email: support@5n1k.io
+    license:
+      name: MIT
+      url: https://opensource.org/licenses/MIT
 
 # Actuator Configuration
 management:
@@ -163,7 +193,10 @@ jwt:
 # Google OAuth2 (dev & prod from environment)
 google:
   oauth2:
-    client-id: ${GOOGLE_CLIENT_ID}
+    web-client-id: ${GOOGLE_WEB_CLIENT_ID}
+    backoffice-client-id: ${GOOGLE_BACKOFFICE_CLIENT_ID}
+    ios-client-id: ${GOOGLE_IOS_CLIENT_ID}
+    android-client-id: ${GOOGLE_ANDROID_CLIENT_ID}
 
 # CORS (dev & prod from environment)
 cors:

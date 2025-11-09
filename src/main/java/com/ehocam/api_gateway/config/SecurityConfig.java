@@ -66,7 +66,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/countries/**").permitAll()
                 .requestMatchers("/api/languages/**").permitAll()
                 .requestMatchers("/api/event-types/**").permitAll()
-                // Events endpoints require authentication for user language preferences
                 .requestMatchers("/api/health/**").permitAll()
                 .requestMatchers("/swagger-ui/**").permitAll()
                 .requestMatchers("/swagger-ui.html").permitAll()
@@ -74,8 +73,10 @@ public class SecurityConfig {
                 .requestMatchers("/api-docs/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/error").permitAll()
-                
-                // Authenticated endpoints
+                // Admin endpoints removed; managed by backoffice-api-gateway
+
+                        // Authenticated endpoints
+                .requestMatchers("/api/events/**").authenticated()
                 .requestMatchers("/api/events/{id}/like").authenticated()
                 .requestMatchers("/api/events/{id}/comments").authenticated()
                 .requestMatchers("/api/events/{id}/share").authenticated()

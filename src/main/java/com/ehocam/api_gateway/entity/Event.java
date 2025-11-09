@@ -67,9 +67,9 @@ public class Event {
     @Column(nullable = false, length = 3)
     private String country; // Country code (TR, US, ALL, etc.)
 
-    @Size(max = 500)
-    @Column(name = "image_url", length = 500)
-    private String imageUrl; // Main image URL
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "images", columnDefinition = "jsonb")
+    private List<EventImage> images; // Array of images with different sizes
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "video_urls", columnDefinition = "jsonb")
@@ -92,6 +92,17 @@ public class Event {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // Performance optimization fields
+    @Column(name = "month_day", insertable = false, updatable = false)
+    private String monthDay; // Generated column: MM-DD format
+
+    @Column(name = "score")
+    private Short score; // Importance score 1-100
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "importance_reason", columnDefinition = "jsonb")
+    private Map<String, String> importanceReason; // Multilingual importance explanation
 
     // Relationships
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -170,12 +181,12 @@ public class Event {
         this.country = country;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public List<EventImage> getImages() {
+        return images;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImages(List<EventImage> images) {
+        this.images = images;
     }
 
     public List<String> getVideoUrls() {
@@ -242,6 +253,31 @@ public class Event {
         this.references = references;
     }
 
+    // Getters and Setters for new performance fields
+    public String getMonthDay() {
+        return monthDay;
+    }
+
+    public void setMonthDay(String monthDay) {
+        this.monthDay = monthDay;
+    }
+
+    public Short getScore() {
+        return score;
+    }
+
+    public void setScore(Short score) {
+        this.score = score;
+    }
+
+    public Map<String, String> getImportanceReason() {
+        return importanceReason;
+    }
+
+    public void setImportanceReason(Map<String, String> importanceReason) {
+        this.importanceReason = importanceReason;
+    }
+
     // Helper methods for multilingual content
     public String getTitleForLanguage(String languageCode) {
         if (title == null) {
@@ -295,13 +331,69 @@ public class Event {
                 ", date=" + date +
                 ", type='" + type + '\'' +
                 ", country='" + country + '\'' +
-                ", imageUrl='" + imageUrl + '\'' +
+                ", images=" + images +
                 ", videoUrls=" + videoUrls +
                 ", audioUrls=" + audioUrls +
                 ", likesCount=" + likesCount +
                 ", commentsCount=" + commentsCount +
+                ", monthDay='" + monthDay + '\'' +
+                ", score=" + score +
+                ", importanceReason=" + importanceReason +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
+    }
+
+    /**
+     * EventImage inner class for storing image information
+     * Used for JSONB storage in PostgreSQL
+     */
+    public static class EventImage {
+        private String type; // "medium", "large", "large2x"
+        private String image_url;
+        private Boolean is_default;
+
+        // Default constructor for Jackson
+        public EventImage() {}
+
+        public EventImage(String type, String image_url, Boolean is_default) {
+            this.type = type;
+            this.image_url = image_url;
+            this.is_default = is_default;
+        }
+
+        // Getters and Setters
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public String getImage_url() {
+            return image_url;
+        }
+
+        public void setImage_url(String image_url) {
+            this.image_url = image_url;
+        }
+
+        public Boolean getIs_default() {
+            return is_default;
+        }
+
+        public void setIs_default(Boolean is_default) {
+            this.is_default = is_default;
+        }
+
+        @Override
+        public String toString() {
+            return "EventImage{" +
+                    "type='" + type + '\'' +
+                    ", image_url='" + image_url + '\'' +
+                    ", is_default=" + is_default +
+                    '}';
+        }
     }
 }

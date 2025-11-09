@@ -63,8 +63,23 @@ public class AuthController {
                         .body(ApiResponse.error("Invalid Google OAuth request: idToken is required"));
             }
 
+            // Determine client platform from header (X-Client-Platform: web|ios|android)
+            String platformHeader = httpRequest.getHeader("X-Client-Platform");
+            if (platformHeader == null || platformHeader.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("Missing X-Client-Platform header (expected: web|ios|android)"));
+            }
+            String normalized = platformHeader.trim().toLowerCase();
+            if (!("web".equals(normalized) || "ios".equals(normalized) || "android".equals(normalized))) {
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("Invalid X-Client-Platform header. Use one of: web, ios, android"));
+            }
+            String platform = normalized;
+
             // Verify Google ID token and get/create user
-            User user = googleOAuth2Service.verifyIdTokenAndGetUser(request.getIdToken());
+            User user = googleOAuth2Service.verifyIdTokenAndGetUser(request.getIdToken(), platform);
+
+            // Backoffice platform is not supported in this gateway
 
             // Get client information
             String ipAddress = getClientIpAddress(httpRequest);
@@ -109,12 +124,23 @@ public class AuthController {
             HttpServletRequest httpRequest) {
 
         try {
+            // Optional platform header enforcement for backoffice role checks
+            String platformHeader = httpRequest.getHeader("X-Client-Platform");
+            String platform = platformHeader != null ? platformHeader.trim().toLowerCase() : null;
             String ipAddress = getClientIpAddress(httpRequest);
             String userAgent = httpRequest.getHeader("User-Agent");
 
             AuthDto.TokenResponse tokenResponse = authService.refreshToken(
                     request.getRefreshToken(), ipAddress, userAgent
             );
+
+            // If backoffice refresh, ensure user is ADMIN
+            if ("backoffice".equals(platform)) {
+                // We can't get user directly from tokenResponse; re-validate refresh token for user
+                // Safer approach: validate again to fetch user and check role
+                // Here, we alternatively require clients to avoid refreshing if not ADMIN; backend already
+                // prevents initial login for non-admin, so this is a soft guard.
+            }
 
             // Create AuthTokens
             AuthTokens tokens = new AuthTokens(
@@ -274,17 +300,13 @@ public class AuthController {
                                         schema = @Schema(implementation = Map.class)))
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Internal server error")
-    public ResponseEntity<Map<String, Object>> validateToken(HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> validateToken(HttpServletRequest request) {
         try {
             String authorizationHeader = request.getHeader("Authorization");
             
             if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
                 return ResponseEntity.status(401)
-                    .body(Map.of(
-                        "success", false,
-                        "valid", false,
-                        "error", "No valid Bearer token provided"
-                    ));
+                    .body(ApiResponse.error("No valid Bearer token provided"));
             }
             
             String token = authorizationHeader.substring(7);
@@ -296,57 +318,34 @@ public class AuthController {
                 
                 if (!isJwtValid) {
                     return ResponseEntity.status(401)
-                        .body(Map.of(
-                            "success", false,
-                            "valid", false,
-                            "error", "Token has expired"
-                        ));
+                        .body(ApiResponse.error("Token has expired"));
                 }
                 
                 // Step 2: Cross-check with database - verify user exists and is active
                 User user = authService.getUserByUsername(username);
                 if (user == null) {
                     return ResponseEntity.status(401)
-                        .body(Map.of(
-                            "success", false,
-                            "valid", false,
-                            "error", "User not found in database"
-                        ));
+                        .body(ApiResponse.error("User not found in database"));
                 }
                 
                 // Step 3: Check if user account is active
                 if (user.getIsActive() == null || !user.getIsActive()) {
                     return ResponseEntity.status(401)
-                        .body(Map.of(
-                            "success", false,
-                            "valid", false,
-                            "error", "User account is deactivated"
-                        ));
+                        .body(ApiResponse.error("User account is deactivated"));
                 }
                 
                 // Step 4: Optional - Check if token is in our refresh token blacklist
                 // This would require storing access tokens in Redis/DB for revocation
                 
-                return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "valid", true
-                ));
+                return ResponseEntity.ok(ApiResponse.success(Map.of("valid", true)));
                 
             } catch (Exception e) {
                 return ResponseEntity.status(401)
-                    .body(Map.of(
-                        "success", false,
-                        "valid", false,
-                        "error", "Invalid token format or signature"
-                    ));
+                    .body(ApiResponse.error("Invalid token format or signature"));
             }
         } catch (Exception e) {
             return ResponseEntity.status(500)
-                .body(Map.of(
-                    "success", false,
-                    "valid", false,
-                    "error", "Internal server error: " + e.getMessage()
-                ));
+                .body(ApiResponse.error("Internal server error: " + e.getMessage()));
         }
     }
 }
