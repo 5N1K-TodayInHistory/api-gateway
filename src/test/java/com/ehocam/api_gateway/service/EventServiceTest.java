@@ -79,7 +79,15 @@ class EventServiceTest {
         testEvent.setDate(LocalDateTime.now());
         testEvent.setType("politics");
         testEvent.setCountry("TR");
-        testEvent.setImageUrl("https://example.com/image.jpg");
+        
+        // Set images array instead of imageUrl
+        List<Event.EventImage> images = List.of(
+                new Event.EventImage("medium", "https://example.com/image-medium.jpg", true),
+                new Event.EventImage("large", "https://example.com/image-large.jpg", false),
+                new Event.EventImage("large2x", "https://example.com/image-large2x.jpg", false)
+        );
+        testEvent.setImages(images);
+        
         testEvent.setVideoUrls(List.of("https://example.com/video.mp4"));
         testEvent.setAudioUrls(List.of("https://example.com/audio.mp3"));
         testEvent.setLikesCount(100);

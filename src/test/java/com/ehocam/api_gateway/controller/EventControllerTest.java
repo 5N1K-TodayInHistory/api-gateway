@@ -36,6 +36,12 @@ class EventControllerTest {
 
     @BeforeEach
     void setUp() {
+        List<EventDto.EventImageDto> images = List.of(
+                new EventDto.EventImageDto("medium", "https://example.com/image-medium.jpg", true),
+                new EventDto.EventImageDto("large", "https://example.com/image-large.jpg", false),
+                new EventDto.EventImageDto("large2x", "https://example.com/image-large2x.jpg", false)
+        );
+        
         testEventResponse = new EventDto.Response(
                 "1",
                 "Test Event",
@@ -44,7 +50,7 @@ class EventControllerTest {
                 LocalDateTime.now().toString(),
                 "politics",
                 "TR",
-                "https://example.com/image.jpg",
+                images,
                 List.of("https://example.com/video.mp4"),
                 List.of("https://example.com/audio.mp3"),
                 List.of(),
@@ -106,6 +112,11 @@ class EventControllerTest {
     @WithMockUser(username = "1")
     void testGetTodaysEvents_WithTurkishLanguage() throws Exception {
         // Arrange
+        List<EventDto.EventImageDto> images = List.of(
+                new EventDto.EventImageDto("medium", "https://example.com/image-medium.jpg", true),
+                new EventDto.EventImageDto("large", "https://example.com/image-large.jpg", false)
+        );
+        
         EventDto.Response turkishEventResponse = new EventDto.Response(
                 "1",
                 "Test Olayı",
@@ -114,7 +125,7 @@ class EventControllerTest {
                 LocalDateTime.now().toString(),
                 "politics",
                 "TR",
-                "https://example.com/image.jpg",
+                images,
                 List.of("https://example.com/video.mp4"),
                 List.of("https://example.com/audio.mp3"),
                 List.of(),

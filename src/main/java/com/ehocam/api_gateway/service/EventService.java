@@ -284,6 +284,18 @@ public class EventService {
                 .map(ref -> new EventDto.ReferenceDto(ref.getTitle(), ref.getUrl()))
                 .collect(Collectors.toList());
 
+        // Convert EventImage entities to DTOs
+        List<EventDto.EventImageDto> imageDtos = null;
+        if (event.getImages() != null && !event.getImages().isEmpty()) {
+            imageDtos = event.getImages().stream()
+                    .map(img -> new EventDto.EventImageDto(
+                            img.getType(),
+                            img.getImage_url(),
+                            img.getIs_default()
+                    ))
+                    .collect(Collectors.toList());
+        }
+
         return new EventDto.Response(
                 event.getId().toString(),
                 title,
@@ -292,7 +304,7 @@ public class EventService {
                 event.getDate().format(DATE_FORMATTER),
                 event.getType(),
                 event.getCountry(),
-                event.getImageUrl(),
+                imageDtos,
                 event.getVideoUrls(),
                 event.getAudioUrls(),
                 referenceDtos,
