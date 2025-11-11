@@ -48,28 +48,28 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     /**
      * Revoke all active refresh tokens for a user
      */
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE RefreshToken rt SET rt.revoked = true WHERE rt.user = :user AND rt.revoked = false")
     int revokeAllByUser(@Param("user") User user);
     
     /**
      * Revoke all active refresh tokens for a user and session
      */
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE RefreshToken rt SET rt.revoked = true WHERE rt.user = :user AND rt.sessionId = :sessionId AND rt.revoked = false")
     int revokeAllByUserAndSession(@Param("user") User user, @Param("sessionId") UUID sessionId);
     
     /**
      * Revoke all refresh tokens in a session (for reuse detection)
      */
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE RefreshToken rt SET rt.revoked = true WHERE rt.user = :user AND rt.sessionId = :sessionId")
     int revokeAllInSession(@Param("user") User user, @Param("sessionId") UUID sessionId);
     
     /**
      * Clean up expired tokens
      */
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM RefreshToken rt WHERE rt.expiresAt < :now")
     int deleteExpiredTokens(@Param("now") LocalDateTime now);
     

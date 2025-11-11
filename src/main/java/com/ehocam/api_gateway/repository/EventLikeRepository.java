@@ -31,7 +31,7 @@ public interface EventLikeRepository extends JpaRepository<EventLike, Long> {
     /**
      * Delete like by event and user
      */
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM EventLike el WHERE el.event.id = :eventId AND el.userId = :userId")
     void deleteByEventIdAndUserId(@Param("eventId") Long eventId, @Param("userId") Long userId);
 }
