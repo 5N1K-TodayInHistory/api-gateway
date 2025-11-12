@@ -9,6 +9,8 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -348,6 +350,7 @@ public class Event {
      * EventImage inner class for storing image information
      * Used for JSONB storage in PostgreSQL
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class EventImage {
         private String type; // "medium", "large", "large2x"
         private String image_url;
