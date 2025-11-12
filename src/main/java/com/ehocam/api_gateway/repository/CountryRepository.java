@@ -14,4 +14,9 @@ public interface CountryRepository extends JpaRepository<Country, Long> {
      * Find all countries ordered by code
      */
     List<Country> findAllByOrderByCodeAsc();
+
+    /**
+     * Find all active countries ordered by code
+     */
+    List<Country> findAllByIsActiveTrueOrderByCodeAsc();
 }

@@ -20,13 +20,13 @@ public class CountryService {
     private CountryRepository countryRepository;
 
     /**
-     * Get all countries with names in specified language
+     * Get all active countries with names in specified language
      * Returns Global first, then other countries alphabetically
      */
     @Transactional(readOnly = true)
     @Cacheable(value = "countries", key = "#language")
     public List<CountryDto.Response> getAllCountries(String language) {
-        List<Country> countries = countryRepository.findAllByOrderByCodeAsc();
+        List<Country> countries = countryRepository.findAllByIsActiveTrueOrderByCodeAsc();
         
         // Sort countries: Global first, then alphabetically by name
         List<Country> sortedCountries = countries.stream()
