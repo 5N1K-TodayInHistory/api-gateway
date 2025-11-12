@@ -2,6 +2,7 @@ package com.ehocam.api_gateway.dto;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -196,6 +197,7 @@ public class EventDto {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class EventImageDto {
         @JsonProperty("type")
         private String type; // "medium", "large", "large2x"

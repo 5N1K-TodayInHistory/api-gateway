@@ -8,15 +8,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.Cache;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.ehocam.api_gateway.cache.CacheWrapper;
 
+import com.ehocam.api_gateway.cache.CacheWrapper;
 import com.ehocam.api_gateway.dto.EventDto;
 import com.ehocam.api_gateway.entity.Event;
 import com.ehocam.api_gateway.entity.EventLike;
@@ -47,7 +47,10 @@ public class EventService {
     
     @Autowired
     private CacheWrapper cacheWrapper;
-
+    
+    @Value("${cdn.base-url:https://cdn.5n1k.io}")
+    private String cdnBaseUrl;
+    
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     /**
@@ -288,11 +291,21 @@ public class EventService {
         List<EventDto.EventImageDto> imageDtos = null;
         if (event.getImages() != null && !event.getImages().isEmpty()) {
             imageDtos = event.getImages().stream()
-                    .map(img -> new EventDto.EventImageDto(
-                            img.getType(),
-                            img.getImage_url(),
-                            img.getIs_default()
-                    ))
+                    .map(img -> {
+                        // Build full image URL with CDN base URL
+                        String imageUrl = img.getImage_url();
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            // Remove leading slash if present
+                            String cleanPath = imageUrl.startsWith("/") ? imageUrl.substring(1) : imageUrl;
+                            // Construct full URL
+                            imageUrl = cdnBaseUrl + "/" + cleanPath;
+                        }
+                        return new EventDto.EventImageDto(
+                                img.getType(),
+                                imageUrl,
+                                img.getIs_default()
+                        );
+                    })
                     .collect(Collectors.toList());
         }
 
