@@ -152,4 +152,36 @@ public class AuthService {
     public AuthDto.TokenResponse generateTokensForUser(User user) {
         return generateTokensForUser(user, null, null, null);
     }
+
+    public void registerPushToken(String username, String pushToken, String platform) {
+        User user = getUserByUsername(username);
+        
+        List<User.Device> devices = user.getDevices();
+        if (devices == null) {
+            devices = new java.util.ArrayList<>();
+        }
+        
+        // Check if device with this token already exists
+        boolean deviceExists = devices.stream()
+                .anyMatch(device -> pushToken.equals(device.getFcmToken()));
+        
+        if (!deviceExists) {
+            // Add new device
+            User.Device newDevice = new User.Device(pushToken, platform);
+            devices.add(newDevice);
+        } else {
+            // Update existing device
+            devices.stream()
+                    .filter(device -> pushToken.equals(device.getFcmToken()))
+                    .findFirst()
+                    .ifPresent(device -> {
+                        device.setPlatform(platform);
+                        device.setLastSeen(LocalDateTime.now());
+                    });
+        }
+        
+        user.setDevices(devices);
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+    }
 }

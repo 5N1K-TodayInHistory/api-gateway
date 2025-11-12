@@ -182,17 +182,17 @@ spring:
   # Redis Configuration (dev & prod from environment)
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-      username: ${REDIS_USERNAME}
-      password: ${REDIS_PASSWORD}
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      username: ${REDIS_USERNAME:}
+      password: ${REDIS_PASSWORD:}
       database: ${REDIS_DATABASE:0}
 
   # Datasource (dev & prod from environment)
   datasource:
-    url: ${DATABASE_URL}
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/api_gateway}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
     # HikariCP Connection Pool Configuration
     hikari:
       # Maximum number of connections in the pool
@@ -220,23 +220,23 @@ spring:
 
 # Server (dev & prod from environment)
 server:
-  port: ${SERVER_PORT}
+  port: ${SERVER_PORT:8080}
 
 # JWT (dev & prod from environment)
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:RHM9dVjyEn6NGTEW3KUobcdmuRVxEngj}
 
 # Google OAuth2 (dev & prod from environment)
 google:
   oauth2:
-    web-client-id: ${GOOGLE_WEB_CLIENT_ID}
-    backoffice-client-id: ${GOOGLE_BACKOFFICE_CLIENT_ID}
-    ios-client-id: ${GOOGLE_IOS_CLIENT_ID}
-    android-client-id: ${GOOGLE_ANDROID_CLIENT_ID}
+    web-client-id: ${GOOGLE_WEB_CLIENT_ID:}
+    backoffice-client-id: ${GOOGLE_BACKOFFICE_CLIENT_ID:373844583085-prm9ncrr063m6f4n6kvs0rsr47vluipp.apps.googleusercontent.com}
+    ios-client-id: ${GOOGLE_IOS_CLIENT_ID:373844583085-h96gpiof3727tjh9tm9dvl4bkml0sqtm.apps.googleusercontent.com}
+    android-client-id: ${GOOGLE_ANDROID_CLIENT_ID:}
 
 # CORS (dev & prod from environment)
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,https://api.5n1k.io,https://dev.api.5n1k.io}
 
 logging:
   level:

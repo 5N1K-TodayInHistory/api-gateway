@@ -222,6 +222,42 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/register-device")
+    @Operation(summary = "Register push notification device", description = "Register push notification token for current user")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully registered device",
+                       content = @Content(mediaType = "application/json", 
+                                        schema = @Schema(implementation = ApiResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad request")
+    public ResponseEntity<ApiResponse<String>> registerDevice(
+            @Valid @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
+
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+
+            String pushToken = request.get("pushToken");
+            if (pushToken == null || pushToken.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("pushToken is required"));
+            }
+
+            // Get platform from header
+            String platformHeader = httpRequest.getHeader("X-Client-Platform");
+            String platform = platformHeader != null ? platformHeader.trim().toLowerCase() : "unknown";
+            if (!("ios".equals(platform) || "android".equals(platform))) {
+                platform = "unknown";
+            }
+
+            authService.registerPushToken(username, pushToken, platform);
+            return ResponseEntity.ok(ApiResponse.success("Device registered successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Failed to register device: " + e.getMessage()));
+        }
+    }
+
     @PostMapping("/logout")
     @Operation(summary = "Logout", description = "Logout current user (invalidate refresh token)")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully logged out",
