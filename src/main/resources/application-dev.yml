@@ -1,8 +1,0 @@
-spring:
-  application:
-    name: api-gateway
-
-  datasource:
-    username: postgres
-    password: 7YZ6rKqnHognYzRoPByxhHrwrRXZoCQX
-    url: jdbc:postgresql://46.224.23.160:5432/5n1k
