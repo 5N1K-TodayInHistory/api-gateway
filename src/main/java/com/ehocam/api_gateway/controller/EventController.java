@@ -51,8 +51,9 @@ public class EventController {
             @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "20") int size,
             @Parameter(description = "Sort order") @RequestParam(value = "sort", defaultValue = "DATE_DESC") String sort) {
         
-        // Use optimized method if country is specified, otherwise use standard method
-        if (country != null && !country.isEmpty()) {
+        // Use optimized method if country is specified and type is not specified
+        // Otherwise use standard method which supports both type and country filters
+        if (country != null && !country.isEmpty() && (type == null || type.isEmpty())) {
             Long userId = getCurrentUserId();
             Page<EventDto.Response> events = eventService.findTodayByCountry(country, language, page, size, userId);
             return ResponseEntity.ok(ApiResponse.success(events));
@@ -79,8 +80,9 @@ public class EventController {
             @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "20") int size,
             @Parameter(description = "Sort order") @RequestParam(value = "sort", defaultValue = "DATE_DESC") String sort) {
         
-        // Use optimized method if country is specified, otherwise use standard method
-        if (country != null && !country.isEmpty()) {
+        // Use optimized method if country is specified and type is not specified
+        // Otherwise use standard method which supports both type and country filters
+        if (country != null && !country.isEmpty() && (type == null || type.isEmpty())) {
             Long userId = getCurrentUserId();
             Page<EventDto.Response> events = eventService.findTomorrowByCountry(country, language, page, size, userId);
             return ResponseEntity.ok(ApiResponse.success(events));
@@ -107,8 +109,9 @@ public class EventController {
             @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "20") int size,
             @Parameter(description = "Sort order") @RequestParam(value = "sort", defaultValue = "DATE_DESC") String sort) {
         
-        // Use optimized method if country is specified, otherwise use standard method
-        if (country != null && !country.isEmpty()) {
+        // Use optimized method if country is specified and type is not specified
+        // Otherwise use standard method which supports both type and country filters
+        if (country != null && !country.isEmpty() && (type == null || type.isEmpty())) {
             Long userId = getCurrentUserId();
             Page<EventDto.Response> events = eventService.findYesterdayByCountry(country, language, page, size, userId);
             return ResponseEntity.ok(ApiResponse.success(events));
