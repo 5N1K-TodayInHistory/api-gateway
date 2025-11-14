@@ -151,8 +151,8 @@ public class UserDto {
         @Schema(description = "Timezone preference", example = "UTC", required = false)
         private String timezone = "UTC";
         
-        @Schema(description = "Push notifications enabled", example = "false", required = false)
-        private boolean notifications = false;
+        @Schema(description = "Notification preferences", required = false)
+        private NotificationPreferencesDto notifications = new NotificationPreferencesDto();
         
         @Schema(description = "Dark mode enabled", example = "false", required = false)
         private boolean darkMode = false;
@@ -168,11 +168,25 @@ public class UserDto {
         public void setLanguage(String language) { this.language = language; }
         public String getTimezone() { return timezone; }
         public void setTimezone(String timezone) { this.timezone = timezone; }
-        public boolean isNotifications() { return notifications; }
-        public void setNotifications(boolean notifications) { this.notifications = notifications; }
+        public NotificationPreferencesDto getNotifications() { return notifications; }
+        public void setNotifications(NotificationPreferencesDto notifications) { this.notifications = notifications; }
         public boolean isDarkMode() { return darkMode; }
         public void setDarkMode(boolean darkMode) { this.darkMode = darkMode; }
+    }
 
+    @Schema(description = "Notification preferences configuration")
+    public static class NotificationPreferencesDto {
+        @Schema(description = "Daily notifications enabled", example = "false", required = false)
+        private boolean daily = false;
+        
+        @Schema(description = "Breaking news notifications enabled", example = "false", required = false)
+        private boolean breaking = false;
+
+        // Getters and Setters
+        public boolean isDaily() { return daily; }
+        public void setDaily(boolean daily) { this.daily = daily; }
+        public boolean isBreaking() { return breaking; }
+        public void setBreaking(boolean breaking) { this.breaking = breaking; }
     }
 
     public static class DeviceDto {

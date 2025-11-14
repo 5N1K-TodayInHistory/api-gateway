@@ -125,9 +125,12 @@ public class UserInfo {
         dto.setSelectedCategories(userPreferences.getCategories());
         dto.setLanguage(userPreferences.getLanguage());
         
-        // Convert NotificationPreferences to boolean (combine daily and breaking)
+        // Convert NotificationPreferences to DTO
         if (userPreferences.getNotifications() != null) {
-            dto.setNotifications(userPreferences.getNotifications().isDaily() || userPreferences.getNotifications().isBreaking());
+            UserDto.NotificationPreferencesDto notificationsDto = new UserDto.NotificationPreferencesDto();
+            notificationsDto.setDaily(userPreferences.getNotifications().isDaily());
+            notificationsDto.setBreaking(userPreferences.getNotifications().isBreaking());
+            dto.setNotifications(notificationsDto);
         }
         
         // Set default darkMode since it doesn't exist in entity

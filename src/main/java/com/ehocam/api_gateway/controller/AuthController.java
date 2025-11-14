@@ -300,10 +300,12 @@ public class AuthController {
             preferencesDto.setLanguage(user.getPreferences().getLanguage());
             preferencesDto.setTimezone(user.getPreferences().getTimezone());
 
-            // Convert NotificationPreferences to boolean
+            // Convert NotificationPreferences to DTO
             if (user.getPreferences().getNotifications() != null) {
-                preferencesDto.setNotifications(user.getPreferences().getNotifications().isDaily() ||
-                        user.getPreferences().getNotifications().isBreaking());
+                UserDto.NotificationPreferencesDto notificationsDto = new UserDto.NotificationPreferencesDto();
+                notificationsDto.setDaily(user.getPreferences().getNotifications().isDaily());
+                notificationsDto.setBreaking(user.getPreferences().getNotifications().isBreaking());
+                preferencesDto.setNotifications(notificationsDto);
             }
 
             // Set default darkMode

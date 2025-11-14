@@ -75,23 +75,44 @@ public class AuthService {
         }
         
         if (request.getPreferences() != null) {
-            // Convert DTO to Entity preferences
-            User.UserPreferences preferences = new User.UserPreferences();
-            preferences.setViewMode(request.getPreferences().getViewMode());
+            // Get existing preferences or create new one
+            User.UserPreferences preferences = user.getPreferences();
+            if (preferences == null) {
+                preferences = new User.UserPreferences();
+            }
+            
+            // Update only provided fields
+            if (request.getPreferences().getViewMode() != null) {
+                preferences.setViewMode(request.getPreferences().getViewMode());
+            }
             
             // Convert selectedCountry to countries list
             if (request.getPreferences().getSelectedCountry() != null) {
                 preferences.setCountries(List.of(request.getPreferences().getSelectedCountry()));
             }
             
-            preferences.setCategories(request.getPreferences().getSelectedCategories());
-            preferences.setLanguage(request.getPreferences().getLanguage());
-            preferences.setTimezone(request.getPreferences().getTimezone());
+            if (request.getPreferences().getSelectedCategories() != null) {
+                preferences.setCategories(request.getPreferences().getSelectedCategories());
+            }
             
-            User.UserPreferences.NotificationPreferences notifications = new User.UserPreferences.NotificationPreferences();
-            notifications.setDaily(request.getPreferences().isNotifications());
-            notifications.setBreaking(request.getPreferences().isNotifications());
-            preferences.setNotifications(notifications);
+            if (request.getPreferences().getLanguage() != null) {
+                preferences.setLanguage(request.getPreferences().getLanguage());
+            }
+            
+            if (request.getPreferences().getTimezone() != null) {
+                preferences.setTimezone(request.getPreferences().getTimezone());
+            }
+            
+            // Update notifications if provided
+            if (request.getPreferences().getNotifications() != null) {
+                User.UserPreferences.NotificationPreferences notifications = preferences.getNotifications();
+                if (notifications == null) {
+                    notifications = new User.UserPreferences.NotificationPreferences();
+                }
+                notifications.setDaily(request.getPreferences().getNotifications().isDaily());
+                notifications.setBreaking(request.getPreferences().getNotifications().isBreaking());
+                preferences.setNotifications(notifications);
+            }
             
             user.setPreferences(preferences);
         }
